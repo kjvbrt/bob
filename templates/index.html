@@ -1,0 +1,100 @@
+{{define "content"}}
+<div class="space-y-6">
+
+  <!-- Page heading -->
+  <div class="flex items-center justify-between">
+    <div>
+      <h1 class="text-2xl font-semibold text-stone-900">Dashboard</h1>
+      <p class="text-sm text-stone-500 mt-0.5">FCC dataset request pipeline — analysis &amp; detector design</p>
+    </div>
+    <button
+      hx-get="/requests/new"
+      hx-target="#modal-container"
+      hx-swap="innerHTML"
+      onclick="document.getElementById('modal-overlay').classList.remove('hidden')"
+      class="flex items-center gap-2 px-4 py-2 rounded-xl bg-indigo-600 text-white text-sm font-medium
+             hover:bg-indigo-700 active:scale-95 transition-all shadow-sm md:hidden">
+      + New
+    </button>
+  </div>
+
+  <!-- Bento stats grid -->
+  <div id="stats-area"
+       hx-get="/api/stats"
+       hx-trigger="every 30s"
+       hx-swap="innerHTML">
+    {{template "stats_cards" .}}
+  </div>
+
+  <!-- Recent requests -->
+  {{if .Recent}}
+  <div>
+    <div class="flex items-center justify-between mb-4">
+      <h2 class="text-lg font-semibold text-stone-900">Recent Requests</h2>
+      <a href="/requests" class="text-sm text-indigo-600 hover:text-indigo-700 font-medium">View all →</a>
+    </div>
+
+    <div class="bento-grid">
+      {{range .Recent}}
+      <div class="bento-card group cursor-pointer"
+           hx-get="/requests/{{.ID}}"
+           hx-target="#modal-container"
+           hx-swap="innerHTML"
+           onclick="document.getElementById('modal-overlay').classList.remove('hidden')">
+
+        <div class="flex items-start justify-between mb-3">
+          <span class="status-badge {{statusClass .Status}}">{{.StatusLabel}}</span>
+          <span class="priority-pip {{priorityClass .Priority}}" title="{{.PriorityLabel}} priority"></span>
+        </div>
+
+        <h3 class="font-semibold text-stone-900 text-sm leading-snug mb-1 group-hover:text-indigo-600 transition-colors">
+          {{truncate .Title 60}}
+        </h3>
+
+        {{if .Description}}
+        <p class="text-xs text-stone-500 leading-relaxed mb-3">{{truncate .Description 100}}</p>
+        {{end}}
+
+        <div class="mt-auto pt-3 border-t border-stone-100 flex items-center justify-between">
+          <div class="flex items-center gap-1.5">
+            <div class="w-6 h-6 rounded-full bg-indigo-100 flex items-center justify-center">
+              <span class="text-indigo-600 font-semibold text-[10px]">{{initial .RequesterName}}</span>
+            </div>
+            <span class="text-xs text-stone-500">{{truncate .RequesterName 20}}</span>
+          </div>
+          <span class="text-xs text-stone-400">{{formatDate .CreatedAt}}</span>
+        </div>
+
+        {{if .TagList}}
+        <div class="flex flex-wrap gap-1 mt-2">
+          {{range .TagList}}<span class="tag">{{.}}</span>{{end}}
+        </div>
+        {{end}}
+      </div>
+      {{end}}
+    </div>
+  </div>
+  {{else}}
+  <!-- Empty state -->
+  <div class="flex flex-col items-center justify-center py-24 text-center">
+    <div class="w-20 h-20 rounded-3xl bg-indigo-50 flex items-center justify-center mb-4">
+      <svg class="w-10 h-10 text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+              d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
+      </svg>
+    </div>
+    <h3 class="text-lg font-semibold text-stone-900 mb-2">No requests yet</h3>
+    <p class="text-stone-500 text-sm mb-6 max-w-xs">Submit your first FCC dataset request to begin tracking simulation, reconstruction, or detector data needs.</p>
+    <button
+      hx-get="/requests/new"
+      hx-target="#modal-container"
+      hx-swap="innerHTML"
+      onclick="document.getElementById('modal-overlay').classList.remove('hidden')"
+      class="px-5 py-2.5 rounded-xl bg-indigo-600 text-white text-sm font-medium hover:bg-indigo-700 transition-colors shadow-sm">
+      Create first request
+    </button>
+  </div>
+  {{end}}
+
+</div>
+{{end}}

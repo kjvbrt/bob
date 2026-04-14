@@ -1,0 +1,18 @@
+{{define "status_badge"}}
+<select
+  name="status"
+  hx-post="/requests/{{.ID}}/status"
+  hx-target="#status-cell-{{.ID}}"
+  hx-swap="innerHTML"
+  hx-trigger="change"
+  class="status-select {{statusClass .Status}}"
+  title="Change status">
+  <option value="draft"       {{if eq .Status "draft"}}selected{{end}}>Draft</option>
+  <option value="pending"     {{if eq .Status "pending"}}selected{{end}}>Pending Review</option>
+  <option value="approved"    {{if eq .Status "approved"}}selected{{end}}>Approved</option>
+  <option value="in_progress" {{if eq .Status "in_progress"}}selected{{end}}>In Progress</option>
+  <option value="completed"   {{if eq .Status "completed"}}selected{{end}}>Completed</option>
+  <option value="rejected"    {{if eq .Status "rejected"}}selected{{end}}>Rejected</option>
+  <option value="cancelled"   {{if eq .Status "cancelled"}}selected{{end}}>Cancelled</option>
+</select>
+{{end}}

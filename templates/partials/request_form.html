@@ -1,0 +1,188 @@
+{{define "request_form"}}
+<div class="p-6">
+  <!-- Modal header -->
+  <div class="flex items-center justify-between mb-6">
+    <div>
+      <h2 class="text-xl font-semibold text-stone-900">
+        {{if .Request}}Edit Request{{else}}New Dataset Request{{end}}
+      </h2>
+      <p class="text-sm text-stone-500 mt-0.5">
+        {{if .Request}}Update request details{{else}}Request FCC simulation, reconstruction, or detector data{{end}}
+      </p>
+    </div>
+    <button onclick="closeModal()" class="p-2 rounded-xl text-stone-400 hover:text-stone-600 hover:bg-stone-100 transition-colors">
+      <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+      </svg>
+    </button>
+  </div>
+
+  <form
+    {{if .Request}}
+      hx-post="/requests/{{.Request.ID}}"
+    {{else}}
+      hx-post="/requests"
+    {{end}}
+    hx-swap="none"
+    class="space-y-5">
+
+    <!-- Title -->
+    <div>
+      <label class="form-label">Title <span class="text-red-500">*</span></label>
+      <input type="text" name="title" required
+             value="{{if .Request}}{{.Request.Title}}{{end}}"
+             placeholder="e.g. Dijet events at √s=100 TeV for calorimeter studies"
+             class="form-input"/>
+    </div>
+
+    <!-- Description -->
+    <div>
+      <label class="form-label">Description</label>
+      <textarea name="description" rows="3"
+                placeholder="Physics process, energy range, detector subsystem, selection criteria…"
+                class="form-input resize-none">{{if .Request}}{{.Request.Description}}{{end}}</textarea>
+    </div>
+
+    <!-- Requester row -->
+    <div class="grid grid-cols-2 gap-4">
+      <div>
+        <label class="form-label">Requester Name <span class="text-red-500">*</span></label>
+        <input type="text" name="requester_name" required
+               value="{{if .Request}}{{.Request.RequesterName}}{{end}}"
+               placeholder="Full name"
+               class="form-input"/>
+      </div>
+      <div>
+        <label class="form-label">Email</label>
+        <input type="email" name="requester_email"
+               value="{{if .Request}}{{.Request.RequesterEmail}}{{end}}"
+               placeholder="name@cern.ch"
+               class="form-input"/>
+      </div>
+    </div>
+
+    <!-- Working group + Dataset Type -->
+    <div class="grid grid-cols-2 gap-4">
+      <div>
+        <label class="form-label">Working Group / Team</label>
+        <input type="text" name="department"
+               value="{{if .Request}}{{.Request.Department}}{{end}}"
+               placeholder="e.g. Tracker WG, Calorimetry WG"
+               class="form-input"/>
+      </div>
+      <div>
+        <label class="form-label">Dataset Type</label>
+        <select name="dataset_type" class="form-input">
+          {{$dt := ""}}{{if .Request}}{{$dt = .Request.DatasetType}}{{end}}
+          <option value="simulation"     {{if eq $dt "simulation"}}selected{{else}}{{if eq $dt ""}}selected{{end}}{{end}}>Simulation (MC)</option>
+          <option value="reconstruction" {{if eq $dt "reconstruction"}}selected{{end}}>Reconstruction</option>
+          <option value="raw_detector"   {{if eq $dt "raw_detector"}}selected{{end}}>Raw Detector Data</option>
+          <option value="mc_truth"       {{if eq $dt "mc_truth"}}selected{{end}}>MC Truth</option>
+          <option value="analysis_ntuple"{{if eq $dt "analysis_ntuple"}}selected{{end}}>Analysis Ntuple</option>
+          <option value="calibration"    {{if eq $dt "calibration"}}selected{{end}}>Calibration</option>
+          <option value="mixed"          {{if eq $dt "mixed"}}selected{{end}}>Mixed</option>
+          <option value="other"          {{if eq $dt "other"}}selected{{end}}>Other</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Use case + Format -->
+    <div class="grid grid-cols-2 gap-4">
+      <div>
+        <label class="form-label">Use Case</label>
+        <select name="use_case" class="form-input">
+          {{$uc := ""}}{{if .Request}}{{$uc = .Request.UseCase}}{{end}}
+          <option value="physics_analysis"   {{if eq $uc "physics_analysis"}}selected{{else}}{{if eq $uc ""}}selected{{end}}{{end}}>Physics Analysis</option>
+          <option value="detector_design"    {{if eq $uc "detector_design"}}selected{{end}}>Detector Design</option>
+          <option value="detector_simulation"{{if eq $uc "detector_simulation"}}selected{{end}}>Detector Simulation</option>
+          <option value="ml_training"        {{if eq $uc "ml_training"}}selected{{end}}>ML Training</option>
+          <option value="ml_evaluation"      {{if eq $uc "ml_evaluation"}}selected{{end}}>ML Evaluation</option>
+          <option value="benchmarking"       {{if eq $uc "benchmarking"}}selected{{end}}>Benchmarking</option>
+          <option value="calibration"        {{if eq $uc "calibration"}}selected{{end}}>Calibration</option>
+          <option value="other"              {{if eq $uc "other"}}selected{{end}}>Other</option>
+        </select>
+      </div>
+      <div>
+        <label class="form-label">Format Needed</label>
+        <input type="text" name="format"
+               value="{{if .Request}}{{.Request.Format}}{{end}}"
+               placeholder="ROOT, HDF5, Parquet, EDM4hep…"
+               class="form-input"/>
+      </div>
+    </div>
+
+    <!-- Status + Priority -->
+    <div class="grid grid-cols-2 gap-4">
+      <div>
+        <label class="form-label">Status</label>
+        <select name="status" class="form-input">
+          <option value="draft"       {{if .Request}}{{if eq .Request.Status "draft"}}selected{{end}}{{end}}>Draft</option>
+          <option value="pending"     {{if .Request}}{{if eq .Request.Status "pending"}}selected{{end}}{{else}}selected{{end}}>Pending Review</option>
+          <option value="approved"    {{if .Request}}{{if eq .Request.Status "approved"}}selected{{end}}{{end}}>Approved</option>
+          <option value="in_progress" {{if .Request}}{{if eq .Request.Status "in_progress"}}selected{{end}}{{end}}>In Progress</option>
+          <option value="completed"   {{if .Request}}{{if eq .Request.Status "completed"}}selected{{end}}{{end}}>Completed</option>
+          <option value="rejected"    {{if .Request}}{{if eq .Request.Status "rejected"}}selected{{end}}{{end}}>Rejected</option>
+          <option value="cancelled"   {{if .Request}}{{if eq .Request.Status "cancelled"}}selected{{end}}{{end}}>Cancelled</option>
+        </select>
+      </div>
+      <div>
+        <label class="form-label">Priority</label>
+        <select name="priority" class="form-input">
+          <option value="low"      {{if .Request}}{{if eq .Request.Priority "low"}}selected{{end}}{{end}}>Low</option>
+          <option value="medium"   {{if .Request}}{{if eq .Request.Priority "medium"}}selected{{end}}{{else}}selected{{end}}>Medium</option>
+          <option value="high"     {{if .Request}}{{if eq .Request.Priority "high"}}selected{{end}}{{end}}>High</option>
+          <option value="critical" {{if .Request}}{{if eq .Request.Priority "critical"}}selected{{end}}{{end}}>Critical</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Est. size + Due date -->
+    <div class="grid grid-cols-2 gap-4">
+      <div>
+        <label class="form-label">Estimated Size / Statistics</label>
+        <input type="text" name="estimated_size"
+               value="{{if .Request}}{{.Request.EstimatedSize}}{{end}}"
+               placeholder="e.g. 10M events, 500 GB"
+               class="form-input"/>
+      </div>
+      <div>
+        <label class="form-label">Due Date</label>
+        <input type="date" name="due_date"
+               value="{{if .Request}}{{.Request.DueDate}}{{end}}"
+               class="form-input"/>
+      </div>
+    </div>
+
+    <!-- Tags -->
+    <div>
+      <label class="form-label">Tags</label>
+      <input type="text" name="tags"
+             value="{{if .Request}}{{.Request.Tags}}{{end}}"
+             placeholder="e.g. fcc-hh, fcc-ee, geant4, delphes, muon-collider"
+             class="form-input"/>
+    </div>
+
+    <!-- Notes -->
+    <div>
+      <label class="form-label">Notes</label>
+      <textarea name="notes" rows="2"
+                placeholder="Generator settings, beam energy, pile-up conditions, special requirements…"
+                class="form-input resize-none">{{if .Request}}{{.Request.Notes}}{{end}}</textarea>
+    </div>
+
+    <!-- Actions -->
+    <div class="flex items-center justify-end gap-3 pt-2">
+      <button type="button" onclick="closeModal()"
+              class="px-4 py-2.5 rounded-xl border border-stone-200 text-stone-600 text-sm font-medium
+                     hover:bg-stone-50 transition-colors">
+        Cancel
+      </button>
+      <button type="submit"
+              class="px-5 py-2.5 rounded-xl bg-indigo-600 text-white text-sm font-medium
+                     hover:bg-indigo-700 active:scale-95 transition-all shadow-sm">
+        {{if .Request}}Save Changes{{else}}Submit Request{{end}}
+      </button>
+    </div>
+  </form>
+</div>
+{{end}}
