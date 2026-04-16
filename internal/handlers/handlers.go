@@ -43,6 +43,7 @@ func New(db *sql.DB, oidcClient *auth.Client, devMode bool) *Handler {
 		"formatDateTime": formatDateTime,
 		"timeAgo":        timeAgo,
 		"add":            func(a, b int) int { return a + b },
+		"currentYear":    func() int { return time.Now().Year() },
 		"initial": func(s string) string {
 			runes := []rune(s)
 			if len(runes) == 0 {

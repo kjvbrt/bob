@@ -29,7 +29,7 @@
     <!-- Title -->
     <div>
       <label class="form-label">Title <span class="text-red-500">*</span></label>
-      <input type="text" name="title" required
+      <input type="text" name="title" required autocomplete="off"
              value="{{if .Request}}{{.Request.Title}}{{end}}"
              placeholder="e.g. Dijet events at √s=100 TeV for calorimeter studies"
              class="form-input"/>
@@ -39,7 +39,7 @@
     <div>
       <label class="form-label">Description</label>
       <textarea name="description" rows="3"
-                placeholder="Physics process, energy range, detector subsystem, selection criteria…"
+                placeholder="Physics process, energy range, detector concept, selection criteria…"
                 class="form-input resize-none">{{if .Request}}{{.Request.Description}}{{end}}</textarea>
     </div>
 
@@ -56,42 +56,17 @@
         </p>
         <p class="text-xs text-stone-400 truncate">{{if .Request}}{{.Request.RequesterEmail}}{{else if .CurrentUser}}{{.CurrentUser.Email}}{{end}}</p>
       </div>
-      <span class="ml-auto shrink-0 text-[10px] font-medium text-stone-400 uppercase tracking-wide">SSO</span>
+      <span class="ml-auto shrink-0 text-[10px] font-medium text-stone-400 uppercase tracking-wide">CERN SSO</span>
     </div>
 
-    <!-- Working group + Dataset Type -->
-    <div class="grid grid-cols-2 gap-4">
-      <div>
-        <label class="form-label">Working Group / Team</label>
-        <input type="text" name="department"
-               value="{{if .Request}}{{.Request.Department}}{{end}}"
-               placeholder="e.g. Tracker WG, Calorimetry WG"
-               class="form-input"/>
-      </div>
-      <div>
-        <label class="form-label">Dataset Type</label>
-        <select name="dataset_type" class="form-input">
-          {{$dt := ""}}{{if .Request}}{{$dt = .Request.DatasetType}}{{end}}
-          <option value="simulation"     {{if eq $dt "simulation"}}selected{{else}}{{if eq $dt ""}}selected{{end}}{{end}}>Simulation (MC)</option>
-          <option value="reconstruction" {{if eq $dt "reconstruction"}}selected{{end}}>Reconstruction</option>
-          <option value="raw_detector"   {{if eq $dt "raw_detector"}}selected{{end}}>Raw Detector Data</option>
-          <option value="mc_truth"       {{if eq $dt "mc_truth"}}selected{{end}}>MC Truth</option>
-          <option value="analysis_ntuple"{{if eq $dt "analysis_ntuple"}}selected{{end}}>Analysis Ntuple</option>
-          <option value="calibration"    {{if eq $dt "calibration"}}selected{{end}}>Calibration</option>
-          <option value="mixed"          {{if eq $dt "mixed"}}selected{{end}}>Mixed</option>
-          <option value="other"          {{if eq $dt "other"}}selected{{end}}>Other</option>
-        </select>
-      </div>
-    </div>
-
-    <!-- Use case + Format -->
+    <!-- Use case + Dataset Stage -->
     <div class="grid grid-cols-2 gap-4">
       <div>
         <label class="form-label">Use Case</label>
         <select name="use_case" class="form-input">
           {{$uc := ""}}{{if .Request}}{{$uc = .Request.UseCase}}{{end}}
           <option value="physics_analysis"   {{if eq $uc "physics_analysis"}}selected{{else}}{{if eq $uc ""}}selected{{end}}{{end}}>Physics Analysis</option>
-          <option value="detector_design"    {{if eq $uc "detector_design"}}selected{{end}}>Detector Design</option>
+          <option value="reconstruction_dev"  {{if eq $uc "reconstruction_dev"}}selected{{end}}>Reconstruction Development</option>
           <option value="detector_simulation"{{if eq $uc "detector_simulation"}}selected{{end}}>Detector Simulation</option>
           <option value="ml_training"        {{if eq $uc "ml_training"}}selected{{end}}>ML Training</option>
           <option value="ml_evaluation"      {{if eq $uc "ml_evaluation"}}selected{{end}}>ML Evaluation</option>
@@ -101,10 +76,31 @@
         </select>
       </div>
       <div>
-        <label class="form-label">Format Needed</label>
-        <input type="text" name="format"
+        <label class="form-label">Dataset Stage</label>
+        <select name="dataset_type" class="form-input">
+          {{$dt := ""}}{{if .Request}}{{$dt = .Request.DatasetType}}{{end}}
+          <option value="generation"     {{if eq $dt "generation"}}selected{{else}}{{if eq $dt ""}}selected{{end}}{{end}}>Generation</option>
+          <option value="simulation"     {{if eq $dt "simulation"}}selected{{end}}>Simulation</option>
+          <option value="reconstruction" {{if eq $dt "reconstruction"}}selected{{end}}>Reconstruction</option>
+          <option value="other"          {{if eq $dt "other"}}selected{{end}}>Other</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Working group + Format -->
+    <div class="grid grid-cols-2 gap-4">
+      <div>
+        <label class="form-label">Working Group / Team</label>
+        <input type="text" name="department"
+               value="{{if .Request}}{{.Request.Department}}{{end}}"
+               placeholder="e.g. Tracker WG, Calorimetry WG"
+               class="form-input"/>
+      </div>
+      <div>
+        <label class="form-label">Format Needed <span class="text-red-500">*</span></label>
+        <input type="text" name="format" required
                value="{{if .Request}}{{.Request.Format}}{{end}}"
-               placeholder="ROOT, HDF5, Parquet, EDM4hep…"
+               placeholder="EDM4hep, HepMC3, ROOT…"
                class="form-input"/>
       </div>
     </div>
@@ -142,8 +138,8 @@
     <!-- Est. size + Due date -->
     <div class="grid grid-cols-2 gap-4">
       <div>
-        <label class="form-label">Estimated Size / Statistics</label>
-        <input type="text" name="estimated_size"
+        <label class="form-label">Statistics / Estimated Size <span class="text-red-500">*</span></label>
+        <input type="text" name="estimated_size" required
                value="{{if .Request}}{{.Request.EstimatedSize}}{{end}}"
                placeholder="e.g. 10M events, 500 GB"
                class="form-input"/>
@@ -161,7 +157,7 @@
       <label class="form-label">Tags</label>
       <input type="text" name="tags"
              value="{{if .Request}}{{.Request.Tags}}{{end}}"
-             placeholder="e.g. fcc-hh, fcc-ee, geant4, delphes, muon-collider"
+             placeholder="e.g. fcc-hh, fcc-ee, higgs, top, ewk, bsm, flavour, llp"
              class="form-input"/>
     </div>
 

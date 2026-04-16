@@ -37,7 +37,7 @@ func (h *Handler) ShowLogin(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, "/", http.StatusSeeOther)
 		return
 	}
-	h.renderPage(w, r, "login", PageData{Title: "Sign in", DevMode: h.devMode})
+	h.renderPage(w, r, "login", PageData{Title: "Login", DevMode: h.devMode})
 }
 
 // DevLogin is only active when DEV_MODE=true. It accepts a plain form with
