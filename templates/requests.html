@@ -11,7 +11,7 @@
     </div>
 
     <!-- Filters -->
-    <div class="flex flex-wrap items-center gap-2">
+    <div class="flex flex-wrap items-center gap-2 w-full sm:w-auto">
       <input
         type="text"
         name="search"
@@ -22,7 +22,7 @@
         hx-target="#request-list-area"
         hx-include="#filter-status,#filter-priority"
         class="px-3 py-2 rounded-xl border border-stone-200 dark:border-stone-700 bg-white dark:bg-stone-800 text-sm text-stone-700 dark:text-stone-200
-               placeholder:text-stone-400 dark:placeholder:text-stone-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 w-48"/>
+               placeholder:text-stone-400 dark:placeholder:text-stone-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 w-full sm:w-48"/>
 
       <select id="filter-status" name="status"
         hx-get="/requests"
@@ -30,7 +30,7 @@
         hx-target="#request-list-area"
         hx-include="[name='search'],#filter-priority"
         class="px-3 py-2 rounded-xl border border-stone-200 dark:border-stone-700 bg-white dark:bg-stone-800 text-sm text-stone-700 dark:text-stone-200
-               focus:outline-none focus:ring-2 focus:ring-indigo-500">
+               focus:outline-none focus:ring-2 focus:ring-indigo-500 flex-1 sm:flex-none">
         <option value="all" {{if eq .Filter.Status ""}}selected{{end}}>All statuses</option>
         <option value="draft"       {{if eq .Filter.Status "draft"}}selected{{end}}>Draft</option>
         <option value="pending"     {{if eq .Filter.Status "pending"}}selected{{end}}>Pending Review</option>
@@ -47,7 +47,7 @@
         hx-target="#request-list-area"
         hx-include="[name='search'],#filter-status"
         class="px-3 py-2 rounded-xl border border-stone-200 dark:border-stone-700 bg-white dark:bg-stone-800 text-sm text-stone-700 dark:text-stone-200
-               focus:outline-none focus:ring-2 focus:ring-indigo-500">
+               focus:outline-none focus:ring-2 focus:ring-indigo-500 flex-1 sm:flex-none">
         <option value="all"      {{if eq .Filter.Priority ""}}selected{{end}}>All priorities</option>
         <option value="critical" {{if eq .Filter.Priority "critical"}}selected{{end}}>Critical</option>
         <option value="high"     {{if eq .Filter.Priority "high"}}selected{{end}}>High</option>

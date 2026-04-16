@@ -60,7 +60,7 @@
     </div>
 
     <!-- Use case + Dataset Stage -->
-    <div class="grid grid-cols-2 gap-4">
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
       <div>
         <label class="form-label">Use Case</label>
         <select name="use_case" class="form-input">
@@ -88,7 +88,7 @@
     </div>
 
     <!-- Working group + Format -->
-    <div class="grid grid-cols-2 gap-4">
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
       <div>
         <label class="form-label">Working Group / Team</label>
         <input type="text" name="department"
@@ -109,7 +109,7 @@
     {{if not .Request}}
     <input type="hidden" name="status" value="pending"/>
     {{end}}
-    <div class="{{if .Request}}grid grid-cols-2 gap-4{{end}}">
+    <div class="{{if .Request}}grid grid-cols-1 sm:grid-cols-2 gap-4{{end}}">
       {{if .Request}}
       <div>
         <label class="form-label">Status</label>
@@ -136,7 +136,7 @@
     </div>
 
     <!-- Est. size + Due date -->
-    <div class="grid grid-cols-2 gap-4">
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
       <div>
         <label class="form-label">Statistics / Estimated Size <span class="text-red-500">*</span></label>
         <input type="text" name="estimated_size" required

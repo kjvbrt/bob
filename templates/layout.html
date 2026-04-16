@@ -42,16 +42,36 @@
 
   <!-- Navigation -->
   <header class="bg-white dark:bg-stone-900 border-b border-stone-200 dark:border-stone-700 sticky top-0 z-40 shadow-sm">
-    <div class="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
-      <a href="/" class="flex items-center gap-3">
-        <img src="/static/logo.png" alt="Bob the Tracker" class="h-11 w-11 object-contain rounded-xl shadow-sm"/>
-        <div class="flex flex-col justify-center">
-          <span class="font-semibold text-stone-900 dark:text-stone-100 tracking-tight text-lg leading-tight">Bob the Tracker</span>
-          <span class="text-xs font-medium text-indigo-500 tracking-wide hidden sm:block leading-tight">FCC Dataset Requests</span>
-        </div>
-      </a>
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-3 md:grid md:grid-cols-[1fr_auto_1fr]">
 
-      <nav class="flex items-center gap-1">
+      <!-- Logo + New Request (desktop) -->
+      <div class="flex items-center gap-3">
+        <a href="/" class="flex items-center gap-3 shrink-0">
+          <img src="/static/logo.png" alt="Bob the Tracker" class="h-11 w-11 object-contain rounded-xl shadow-sm"/>
+          <div class="hidden sm:flex flex-col justify-center">
+            <span class="font-semibold text-stone-900 dark:text-stone-100 tracking-tight text-lg leading-tight">Bob the Tracker</span>
+            <span class="text-xs font-medium text-indigo-500 tracking-wide leading-tight">FCC Dataset Requests</span>
+          </div>
+        </a>
+        {{if .CurrentUser}}
+        <div class="hidden md:block w-px h-6 bg-stone-200 dark:bg-stone-700 mx-1"></div>
+        <button
+          hx-get="/requests/new"
+          hx-target="#modal-container"
+          hx-swap="innerHTML"
+          onclick="document.getElementById('modal-overlay').classList.remove('hidden')"
+          class="hidden md:flex items-center gap-2 px-4 py-2 rounded-xl bg-indigo-600 dark:bg-indigo-900/80 text-white dark:text-indigo-300 text-sm font-medium
+                 hover:bg-indigo-700 dark:hover:bg-indigo-900 active:scale-95 transition-all shadow-sm dark:shadow-none dark:ring-1 dark:ring-indigo-700/60">
+          <svg class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
+          </svg>
+          New Request
+        </button>
+        {{end}}
+      </div>
+
+      <!-- Desktop nav -->
+      <nav class="hidden md:flex items-center gap-1">
         <a href="/"
            class="px-4 py-2 rounded-xl text-sm font-medium transition-colors
                   {{if eq .Title "Dashboard"}}bg-indigo-50 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300{{else}}text-stone-600 dark:text-stone-400 hover:bg-stone-100 dark:hover:bg-stone-800 hover:text-stone-900 dark:hover:text-stone-100{{end}}">
@@ -71,61 +91,73 @@
         {{end}}
       </nav>
 
-      <div class="flex items-center gap-3">
+      <!-- Right side controls -->
+      <div class="flex items-center gap-2 justify-end">
         {{if .CurrentUser}}
-        <!-- New Request -->
+        <!-- New Request (mobile icon only) -->
         <button
           hx-get="/requests/new"
           hx-target="#modal-container"
           hx-swap="innerHTML"
           onclick="document.getElementById('modal-overlay').classList.remove('hidden')"
-          class="flex items-center gap-2 px-4 py-2 rounded-xl bg-indigo-600 dark:bg-indigo-900/80 text-white dark:text-indigo-300 text-sm font-medium
+          class="md:hidden flex items-center justify-center w-9 h-9 rounded-xl bg-indigo-600 dark:bg-indigo-900/80 text-white dark:text-indigo-300
                  hover:bg-indigo-700 dark:hover:bg-indigo-900 active:scale-95 transition-all shadow-sm dark:shadow-none dark:ring-1 dark:ring-indigo-700/60">
-          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+          <svg class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
             <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
           </svg>
-          New Request
         </button>
 
-        <!-- User pill -->
-        <div class="flex items-center gap-2 pl-3 border-l border-stone-200 dark:border-stone-700">
+        <!-- Desktop: user pill (hidden on mobile) -->
+        <div class="hidden md:flex items-center gap-2">
           <!-- Theme toggle -->
-          <div class="flex items-center gap-0.5 p-0.5 rounded-lg bg-stone-100 dark:bg-stone-800">
+          <div class="flex items-center gap-0.5 p-0.5 rounded-xl bg-stone-100 dark:bg-stone-800">
             <button class="theme-btn" data-theme="light" onclick="setTheme('light')" title="Light mode">
-              <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.75">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364-6.364l-.707.707M6.343 17.657l-.707.707M17.657 17.657l-.707-.707M6.343 6.343l-.707-.707M12 8a4 4 0 100 8 4 4 0 000-8z"/>
               </svg>
             </button>
             <button class="theme-btn" data-theme="system" onclick="setTheme('system')" title="System preference">
-              <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.75">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
               </svg>
             </button>
             <button class="theme-btn" data-theme="dark" onclick="setTheme('dark')" title="Dark mode">
-              <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.75">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/>
               </svg>
             </button>
           </div>
-          <div class="w-7 h-7 rounded-full bg-indigo-100 dark:bg-indigo-900/50 flex items-center justify-center">
+          <div class="w-px h-6 bg-stone-200 dark:bg-stone-700 mx-1"></div>
+          <div class="w-8 h-8 rounded-full bg-indigo-100 dark:bg-indigo-900/50 flex items-center justify-center shrink-0">
             <span class="text-indigo-700 dark:text-indigo-300 font-semibold text-xs">{{initial .CurrentUser.DisplayName}}</span>
           </div>
-          <div class="hidden sm:block leading-tight">
+          <div class="leading-tight">
             <p class="text-xs font-medium text-stone-800 dark:text-stone-200">{{.CurrentUser.Username}}</p>
             <p class="text-[10px] text-stone-400 capitalize">{{.CurrentUser.Role}}</p>
           </div>
           <a href="/logout"
-             class="p-1.5 rounded-lg text-stone-400 hover:text-stone-600 dark:hover:text-stone-300 hover:bg-stone-100 dark:hover:bg-stone-800 transition-colors"
+             class="p-2 rounded-lg text-stone-400 hover:text-stone-600 dark:hover:text-stone-300 hover:bg-stone-100 dark:hover:bg-stone-800 transition-colors"
              title="Logout">
-            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.75">
               <path stroke-linecap="round" stroke-linejoin="round"
                     d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15M12 9l-3 3m0 0l3 3m-3-3h12.75"/>
             </svg>
           </a>
         </div>
+
+        <!-- Hamburger (mobile only) -->
+        <button id="mobile-menu-btn"
+                class="md:hidden p-2 rounded-xl text-stone-500 dark:text-stone-400 hover:bg-stone-100 dark:hover:bg-stone-800 transition-colors"
+                onclick="document.getElementById('mobile-nav').classList.toggle('hidden')"
+                aria-label="Menu">
+          <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16"/>
+          </svg>
+        </button>
+
         {{else}}
-        <!-- Theme toggle (unauthenticated) -->
-        <div class="flex items-center gap-0.5 p-0.5 rounded-lg bg-stone-100 dark:bg-stone-800">
+        <!-- Desktop: theme toggle + login (hidden on mobile for login page) -->
+        <div class="hidden md:flex items-center gap-0.5 p-0.5 rounded-lg bg-stone-100 dark:bg-stone-800">
           <button class="theme-btn" data-theme="light" onclick="setTheme('light')" title="Light mode">
             <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
               <path stroke-linecap="round" stroke-linejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364-6.364l-.707.707M6.343 17.657l-.707.707M17.657 17.657l-.707-.707M6.343 6.343l-.707-.707M12 8a4 4 0 100 8 4 4 0 000-8z"/>
@@ -152,10 +184,76 @@
         {{end}}
       </div>
     </div>
+
+    <!-- Mobile nav panel (authenticated) -->
+    {{if .CurrentUser}}
+    <div id="mobile-nav" class="hidden md:hidden border-t border-stone-100 dark:border-stone-800 bg-white dark:bg-stone-900 px-4 py-3 space-y-1">
+      <!-- Nav links -->
+      <a href="/"
+         class="block px-4 py-2.5 rounded-xl text-sm font-medium transition-colors
+                {{if eq .Title "Dashboard"}}bg-indigo-50 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300{{else}}text-stone-600 dark:text-stone-400 hover:bg-stone-100 dark:hover:bg-stone-800{{end}}">
+        Dashboard
+      </a>
+      <a href="/requests"
+         class="block px-4 py-2.5 rounded-xl text-sm font-medium transition-colors
+                {{if eq .Title "All Requests"}}bg-indigo-50 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300{{else}}text-stone-600 dark:text-stone-400 hover:bg-stone-100 dark:hover:bg-stone-800{{end}}">
+        Requests
+      </a>
+      {{if .CurrentUser.IsManager}}
+      <a href="/manager"
+         class="block px-4 py-2.5 rounded-xl text-sm font-medium transition-colors
+                {{if eq .Title "Pipeline"}}bg-indigo-50 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300{{else}}text-stone-600 dark:text-stone-400 hover:bg-stone-100 dark:hover:bg-stone-800{{end}}">
+        Pipeline
+      </a>
+      {{end}}
+      <!-- Divider: user info -->
+      <div class="pt-2 mt-2 border-t border-stone-100 dark:border-stone-800 flex items-center gap-2">
+        <div class="w-7 h-7 rounded-full bg-indigo-100 dark:bg-indigo-900/50 flex items-center justify-center shrink-0">
+          <span class="text-indigo-700 dark:text-indigo-300 font-semibold text-xs">{{initial .CurrentUser.DisplayName}}</span>
+        </div>
+        <div class="leading-tight">
+          <p class="text-xs font-medium text-stone-800 dark:text-stone-200">{{.CurrentUser.Username}}</p>
+          <p class="text-[10px] text-stone-400 capitalize">{{.CurrentUser.Role}}</p>
+        </div>
+      </div>
+      <!-- Theme toggle row -->
+      <div class="flex items-center gap-2 px-1 pt-1">
+        <span class="text-xs text-stone-400 mr-1">Theme</span>
+        <div class="flex items-center gap-0.5 p-0.5 rounded-xl bg-stone-100 dark:bg-stone-800">
+          <button class="theme-btn" data-theme="light" onclick="setTheme('light')" title="Light mode">
+            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.75">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364-6.364l-.707.707M6.343 17.657l-.707.707M17.657 17.657l-.707-.707M6.343 6.343l-.707-.707M12 8a4 4 0 100 8 4 4 0 000-8z"/>
+            </svg>
+          </button>
+          <button class="theme-btn" data-theme="system" onclick="setTheme('system')" title="System preference">
+            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.75">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+            </svg>
+          </button>
+          <button class="theme-btn" data-theme="dark" onclick="setTheme('dark')" title="Dark mode">
+            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.75">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+      <!-- Logout row -->
+      <div class="pt-1">
+        <a href="/logout"
+           class="flex items-center gap-2 w-full px-4 py-2.5 rounded-xl text-sm font-medium text-stone-600 dark:text-stone-400 hover:bg-stone-100 dark:hover:bg-stone-800 transition-colors">
+          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round"
+                  d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15M12 9l-3 3m0 0l3 3m-3-3h12.75"/>
+          </svg>
+          Logout
+        </a>
+      </div>
+    </div>
+    {{end}}
   </header>
 
   <!-- Main content -->
-  <main class="flex-1 max-w-7xl w-full mx-auto px-6 py-8">
+  <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 py-6 sm:py-8">
     {{block "content" .}}{{end}}
   </main>
 
@@ -186,10 +284,10 @@
   </footer>
 
   <!-- Modal overlay -->
-  <div id="modal-overlay" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4">
+  <div id="modal-overlay" class="hidden fixed inset-0 z-50 flex items-end sm:items-center justify-center sm:p-4">
     <div class="absolute inset-0 bg-black/40 backdrop-blur-sm" onclick="closeModal()"></div>
     <div id="modal-container"
-         class="relative w-full max-w-2xl max-h-[90vh] overflow-y-auto bg-white dark:bg-stone-900 rounded-3xl shadow-2xl z-10">
+         class="relative w-full sm:max-w-2xl max-h-[92vh] sm:max-h-[90vh] overflow-y-auto bg-white dark:bg-stone-900 rounded-t-3xl sm:rounded-3xl shadow-2xl z-10">
     </div>
   </div>
 
