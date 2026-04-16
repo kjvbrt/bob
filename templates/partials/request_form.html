@@ -3,7 +3,7 @@
   <!-- Modal header -->
   <div class="flex items-center justify-between mb-6">
     <div>
-      <h2 class="text-xl font-semibold text-stone-900">
+      <h2 class="text-xl font-semibold text-stone-900 dark:text-stone-100">
         {{if .Request}}Edit Request{{else}}New Dataset Request{{end}}
       </h2>
       <p class="text-sm text-stone-500 mt-0.5">
@@ -43,22 +43,20 @@
                 class="form-input resize-none">{{if .Request}}{{.Request.Description}}{{end}}</textarea>
     </div>
 
-    <!-- Requester row -->
-    <div class="grid grid-cols-2 gap-4">
-      <div>
-        <label class="form-label">Requester Name <span class="text-red-500">*</span></label>
-        <input type="text" name="requester_name" required
-               value="{{if .Request}}{{.Request.RequesterName}}{{end}}"
-               placeholder="Full name"
-               class="form-input"/>
+    <!-- Requester identity (from SSO, display only) -->
+    <div class="flex items-center gap-3 px-3 py-2.5 rounded-xl bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700">
+      <div class="w-8 h-8 rounded-full bg-indigo-100 dark:bg-indigo-900/40 flex items-center justify-center shrink-0">
+        <span class="text-indigo-600 text-xs font-bold">{{if .Request}}{{initial .Request.RequesterName}}{{else if .CurrentUser}}{{initial .CurrentUser.DisplayName}}{{else}}?{{end}}</span>
       </div>
-      <div>
-        <label class="form-label">Email</label>
-        <input type="email" name="requester_email"
-               value="{{if .Request}}{{.Request.RequesterEmail}}{{end}}"
-               placeholder="name@cern.ch"
-               class="form-input"/>
+      <div class="min-w-0">
+        <p class="text-sm font-medium text-stone-800 dark:text-stone-200 truncate">
+          {{if .Request}}{{.Request.RequesterName}}{{else if .CurrentUser}}{{.CurrentUser.DisplayName}}{{end}}
+          <span class="text-stone-400 font-normal">·</span>
+          <span class="text-stone-500 font-normal">{{if .Request}}{{.Request.RequesterUsername}}{{else if .CurrentUser}}{{.CurrentUser.Username}}{{end}}</span>
+        </p>
+        <p class="text-xs text-stone-400 truncate">{{if .Request}}{{.Request.RequesterEmail}}{{else if .CurrentUser}}{{.CurrentUser.Email}}{{end}}</p>
       </div>
+      <span class="ml-auto shrink-0 text-[10px] font-medium text-stone-400 uppercase tracking-wide">SSO</span>
     </div>
 
     <!-- Working group + Dataset Type -->
@@ -111,20 +109,25 @@
       </div>
     </div>
 
-    <!-- Status + Priority -->
-    <div class="grid grid-cols-2 gap-4">
+    <!-- Status (edit only) + Priority -->
+    {{if not .Request}}
+    <input type="hidden" name="status" value="pending"/>
+    {{end}}
+    <div class="{{if .Request}}grid grid-cols-2 gap-4{{end}}">
+      {{if .Request}}
       <div>
         <label class="form-label">Status</label>
         <select name="status" class="form-input">
-          <option value="draft"       {{if .Request}}{{if eq .Request.Status "draft"}}selected{{end}}{{end}}>Draft</option>
-          <option value="pending"     {{if .Request}}{{if eq .Request.Status "pending"}}selected{{end}}{{else}}selected{{end}}>Pending Review</option>
-          <option value="approved"    {{if .Request}}{{if eq .Request.Status "approved"}}selected{{end}}{{end}}>Approved</option>
-          <option value="in_progress" {{if .Request}}{{if eq .Request.Status "in_progress"}}selected{{end}}{{end}}>In Progress</option>
-          <option value="completed"   {{if .Request}}{{if eq .Request.Status "completed"}}selected{{end}}{{end}}>Completed</option>
-          <option value="rejected"    {{if .Request}}{{if eq .Request.Status "rejected"}}selected{{end}}{{end}}>Rejected</option>
-          <option value="cancelled"   {{if .Request}}{{if eq .Request.Status "cancelled"}}selected{{end}}{{end}}>Cancelled</option>
+          <option value="draft"       {{if eq .Request.Status "draft"}}selected{{end}}>Draft</option>
+          <option value="pending"     {{if eq .Request.Status "pending"}}selected{{end}}>Pending Review</option>
+          <option value="approved"    {{if eq .Request.Status "approved"}}selected{{end}}>Approved</option>
+          <option value="in_progress" {{if eq .Request.Status "in_progress"}}selected{{end}}>In Progress</option>
+          <option value="completed"   {{if eq .Request.Status "completed"}}selected{{end}}>Completed</option>
+          <option value="rejected"    {{if eq .Request.Status "rejected"}}selected{{end}}>Rejected</option>
+          <option value="cancelled"   {{if eq .Request.Status "cancelled"}}selected{{end}}>Cancelled</option>
         </select>
       </div>
+      {{end}}
       <div>
         <label class="form-label">Priority</label>
         <select name="priority" class="form-input">
@@ -173,8 +176,8 @@
     <!-- Actions -->
     <div class="flex items-center justify-end gap-3 pt-2">
       <button type="button" onclick="closeModal()"
-              class="px-4 py-2.5 rounded-xl border border-stone-200 text-stone-600 text-sm font-medium
-                     hover:bg-stone-50 transition-colors">
+              class="px-4 py-2.5 rounded-xl border border-stone-200 dark:border-stone-700 text-stone-600 dark:text-stone-300 text-sm font-medium
+                     hover:bg-stone-50 dark:hover:bg-stone-800 transition-colors">
         Cancel
       </button>
       <button type="submit"

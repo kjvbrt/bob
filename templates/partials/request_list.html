@@ -1,27 +1,42 @@
 {{define "request_list"}}
 {{if .Requests}}
-<div class="bg-white rounded-2xl border border-stone-200 shadow-sm overflow-hidden">
+<div class="bg-white dark:bg-stone-900 rounded-2xl border border-stone-200 dark:border-stone-700 shadow-sm overflow-hidden">
   <table class="w-full text-sm">
     <thead>
-      <tr class="border-b border-stone-100">
+      <tr class="border-b border-stone-100 dark:border-stone-800">
+        {{if .CurrentUser.IsManager}}
+        <th class="px-4 py-3.5 w-8"></th>
+        {{end}}
         <th class="text-left px-5 py-3.5 font-medium text-stone-500 text-xs uppercase tracking-wide">Request</th>
         <th class="text-left px-5 py-3.5 font-medium text-stone-500 text-xs uppercase tracking-wide hidden sm:table-cell">Requester</th>
         <th class="text-left px-5 py-3.5 font-medium text-stone-500 text-xs uppercase tracking-wide hidden md:table-cell">Type</th>
         <th class="text-left px-5 py-3.5 font-medium text-stone-500 text-xs uppercase tracking-wide">Status</th>
         <th class="text-left px-5 py-3.5 font-medium text-stone-500 text-xs uppercase tracking-wide hidden lg:table-cell">Priority</th>
+        {{if .CurrentUser.IsManager}}
+        <th class="text-left px-5 py-3.5 font-medium text-stone-500 text-xs uppercase tracking-wide hidden xl:table-cell">Assigned</th>
+        {{end}}
         <th class="text-left px-5 py-3.5 font-medium text-stone-500 text-xs uppercase tracking-wide hidden xl:table-cell">Created</th>
         <th class="px-5 py-3.5"></th>
       </tr>
     </thead>
-    <tbody class="divide-y divide-stone-50">
+    <tbody class="divide-y divide-stone-50 dark:divide-stone-800">
       {{range .Requests}}
-      <tr class="hover:bg-stone-50 transition-colors group" id="row-{{.ID}}">
+      <tr class="hover:bg-stone-50 dark:hover:bg-stone-800/50 transition-colors group" id="row-{{.ID}}">
+        {{if $.CurrentUser.IsManager}}
+        <td class="px-4 py-4">
+          <input type="checkbox" name="ids" value="{{.ID}}" class="batch-cb rounded border-stone-300 dark:border-stone-600 text-indigo-600 focus:ring-indigo-500 cursor-pointer">
+        </td>
+        {{end}}
         <td class="px-5 py-4">
-          <a href="/requests/{{.ID}}" class="font-medium text-stone-900 hover:text-indigo-600 transition-colors block">
-            {{truncate .Title 50}}
-          </a>
+          <a href="/requests/{{.ID}}"
+             hx-get="/requests/{{.ID}}"
+             hx-target="#modal-container"
+             hx-swap="innerHTML"
+             onclick="document.getElementById('modal-overlay').classList.remove('hidden')"
+             class="font-medium text-stone-900 dark:text-stone-100 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors block"
+             data-md-inline>{{truncate .Title 50}}</a>
           {{if .Description}}
-          <p class="text-xs text-stone-400 mt-0.5">{{truncate .Description 70}}</p>
+          <div class="prose-md text-xs text-stone-400 mt-0.5" data-md>{{truncate .Description 70}}</div>
           {{end}}
           {{if .TagList}}
           <div class="flex flex-wrap gap-1 mt-1.5">
@@ -31,11 +46,11 @@
         </td>
         <td class="px-5 py-4 hidden sm:table-cell">
           <div class="flex items-center gap-2">
-            <div class="w-7 h-7 rounded-full bg-indigo-100 flex items-center justify-center shrink-0">
-              <span class="text-indigo-600 font-semibold text-[10px]">{{initial .RequesterName}}</span>
+            <div class="w-7 h-7 rounded-full bg-indigo-100 dark:bg-indigo-900/40 flex items-center justify-center shrink-0">
+              <span class="text-indigo-600 dark:text-indigo-400 font-semibold text-[10px]">{{initial .RequesterName}}</span>
             </div>
             <div>
-              <p class="text-stone-700 font-medium text-xs">{{truncate .RequesterName 22}}</p>
+              <p class="text-stone-700 dark:text-stone-300 font-medium text-xs">{{truncate .RequesterName 22}}</p>
               {{if .Department}}<p class="text-stone-400 text-xs">{{.Department}}</p>{{end}}
             </div>
           </div>
@@ -44,40 +59,86 @@
           <span class="text-stone-500 text-xs capitalize">{{.DatasetType}}</span>
         </td>
         <td class="px-5 py-4" id="status-cell-{{.ID}}">
-          {{template "status_badge" .}}
+          {{if $.CurrentUser.IsManager}}
+          <select name="status"
+            hx-post="/requests/{{.ID}}/status"
+            hx-target="#status-cell-{{.ID}}"
+            hx-swap="innerHTML"
+            hx-trigger="change"
+            class="status-select {{statusClass .Status}}"
+            title="Change status">
+            <option value="draft"       {{if eq .Status "draft"}}selected{{end}}>Draft</option>
+            <option value="pending"     {{if eq .Status "pending"}}selected{{end}}>Pending Review</option>
+            <option value="approved"    {{if eq .Status "approved"}}selected{{end}}>Approved</option>
+            <option value="in_progress" {{if eq .Status "in_progress"}}selected{{end}}>In Progress</option>
+            <option value="completed"   {{if eq .Status "completed"}}selected{{end}}>Completed</option>
+            <option value="rejected"    {{if eq .Status "rejected"}}selected{{end}}>Rejected</option>
+            <option value="cancelled"   {{if eq .Status "cancelled"}}selected{{end}}>Cancelled</option>
+          </select>
+          {{else}}
+          <span class="status-badge {{statusClass .Status}}">{{.StatusLabel}}</span>
+          {{end}}
         </td>
-        <td class="px-5 py-4 hidden lg:table-cell">
+        <td class="px-5 py-4 hidden lg:table-cell" id="priority-cell-{{.ID}}">
+          {{if $.CurrentUser.IsManager}}
+          <select name="priority"
+            hx-post="/requests/{{.ID}}/priority"
+            hx-target="#priority-cell-{{.ID}}"
+            hx-swap="innerHTML"
+            hx-trigger="change"
+            class="priority-select {{priorityClass .Priority}}"
+            title="Change priority">
+            <option value="low"      {{if eq .Priority "low"}}selected{{end}}>Low</option>
+            <option value="medium"   {{if eq .Priority "medium"}}selected{{end}}>Medium</option>
+            <option value="high"     {{if eq .Priority "high"}}selected{{end}}>High</option>
+            <option value="critical" {{if eq .Priority "critical"}}selected{{end}}>Critical</option>
+          </select>
+          {{else}}
           <span class="inline-flex items-center gap-1.5">
             <span class="priority-pip {{priorityClass .Priority}}"></span>
-            <span class="text-xs text-stone-600">{{.PriorityLabel}}</span>
+            <span class="text-xs text-stone-600 dark:text-stone-400">{{.PriorityLabel}}</span>
           </span>
+          {{end}}
         </td>
+        {{if $.CurrentUser.IsManager}}
+        <td class="px-5 py-4 hidden xl:table-cell">
+          {{if .AssignedToName}}
+          <span class="text-xs text-stone-600 dark:text-stone-400">{{.AssignedToName}}</span>
+          {{else}}
+          <span class="text-xs text-stone-300 dark:text-stone-600">—</span>
+          {{end}}
+        </td>
+        {{end}}
         <td class="px-5 py-4 text-xs text-stone-400 hidden xl:table-cell whitespace-nowrap">
           {{formatDate .CreatedAt}}
         </td>
         <td class="px-5 py-4">
           <div class="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+            {{if or $.CurrentUser.IsManager (and (eq .CreatedBy $.CurrentUser.ID) (or (eq .Status "draft") (eq .Status "pending")))}}
             <button
               hx-get="/requests/{{.ID}}/edit"
               hx-target="#modal-container"
               hx-swap="innerHTML"
               onclick="document.getElementById('modal-overlay').classList.remove('hidden')"
-              class="p-1.5 rounded-lg text-stone-400 hover:text-indigo-600 hover:bg-indigo-50 transition-colors"
+              class="p-1.5 rounded-lg text-stone-400 hover:text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 transition-colors"
               title="Edit">
               <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
               </svg>
             </button>
+            {{end}}
+            {{if $.CurrentUser.IsManager}}
             <button
               hx-delete="/requests/{{.ID}}"
               hx-confirm="Delete this request? This cannot be undone."
               hx-swap="none"
-              class="p-1.5 rounded-lg text-stone-400 hover:text-red-500 hover:bg-red-50 transition-colors"
+              class="p-1.5 rounded-lg text-stone-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/30 transition-colors"
               title="Delete">
               <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
               </svg>
             </button>
+            {{end}}
           </div>
         </td>
       </tr>
@@ -86,13 +147,13 @@
   </table>
 </div>
 {{else}}
-<div class="flex flex-col items-center justify-center py-20 bg-white rounded-2xl border border-stone-200">
-  <div class="w-16 h-16 rounded-2xl bg-stone-100 flex items-center justify-center mb-3">
+<div class="flex flex-col items-center justify-center py-20 bg-white dark:bg-stone-900 rounded-2xl border border-stone-200 dark:border-stone-700">
+  <div class="w-16 h-16 rounded-2xl bg-stone-100 dark:bg-stone-800 flex items-center justify-center mb-3">
     <svg class="w-8 h-8 text-stone-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
     </svg>
   </div>
-  <p class="text-stone-600 font-medium">No requests found</p>
+  <p class="text-stone-600 dark:text-stone-300 font-medium">No requests found</p>
   <p class="text-stone-400 text-sm mt-1">Try adjusting your filters or submit a new FCC dataset request</p>
 </div>
 {{end}}

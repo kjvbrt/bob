@@ -1,0 +1,40 @@
+{{define "batch_toolbar"}}
+{{if .CurrentUser.IsManager}}
+<div id="batch-toolbar" class="batch-toolbar hidden">
+  <span id="batch-count" class="text-sm font-medium text-indigo-700 dark:text-indigo-300 mr-1">0 selected</span>
+  <div class="w-px h-4 bg-indigo-200 dark:bg-indigo-700"></div>
+  <button hx-post="/requests/batch"
+          hx-include=".batch-cb:checked"
+          hx-vals='{"action":"approve"}'
+          hx-swap="none"
+          class="px-3 py-1.5 rounded-lg bg-blue-600 text-white text-xs font-medium hover:bg-blue-700 transition-colors">
+    Approve
+  </button>
+  <button hx-post="/requests/batch"
+          hx-include=".batch-cb:checked"
+          hx-vals='{"action":"in_progress"}'
+          hx-swap="none"
+          class="px-3 py-1.5 rounded-lg bg-violet-600 text-white text-xs font-medium hover:bg-violet-700 transition-colors">
+    In Progress
+  </button>
+  <button hx-post="/requests/batch"
+          hx-include=".batch-cb:checked"
+          hx-vals='{"action":"complete"}'
+          hx-swap="none"
+          class="px-3 py-1.5 rounded-lg bg-green-600 text-white text-xs font-medium hover:bg-green-700 transition-colors">
+    Complete
+  </button>
+  <button hx-post="/requests/batch"
+          hx-include=".batch-cb:checked"
+          hx-vals='{"action":"reject"}'
+          hx-swap="none"
+          class="px-3 py-1.5 rounded-lg bg-red-600 text-white text-xs font-medium hover:bg-red-700 transition-colors">
+    Reject
+  </button>
+  <button type="button" onclick="deselectAll()"
+          class="ml-auto text-xs text-indigo-500 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-200 transition-colors">
+    Deselect all
+  </button>
+</div>
+{{end}}
+{{end}}

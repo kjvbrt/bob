@@ -4,7 +4,7 @@
   <!-- Header -->
   <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
     <div>
-      <h1 class="text-2xl font-semibold text-stone-900">Requests</h1>
+      <h1 class="text-2xl font-semibold text-stone-900 dark:text-stone-100">Requests</h1>
       <p class="text-sm text-stone-500 mt-0.5">
         {{if .Stats}}{{.Stats.Total}} total — FCC analysis &amp; detector design datasets{{end}}
       </p>
@@ -21,15 +21,15 @@
         hx-trigger="input changed delay:300ms"
         hx-target="#request-list-area"
         hx-include="#filter-status,#filter-priority"
-        class="px-3 py-2 rounded-xl border border-stone-200 bg-white text-sm text-stone-700
-               placeholder:text-stone-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 w-48"/>
+        class="px-3 py-2 rounded-xl border border-stone-200 dark:border-stone-700 bg-white dark:bg-stone-800 text-sm text-stone-700 dark:text-stone-200
+               placeholder:text-stone-400 dark:placeholder:text-stone-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 w-48"/>
 
       <select id="filter-status" name="status"
         hx-get="/requests"
         hx-trigger="change"
         hx-target="#request-list-area"
         hx-include="[name='search'],#filter-priority"
-        class="px-3 py-2 rounded-xl border border-stone-200 bg-white text-sm text-stone-700
+        class="px-3 py-2 rounded-xl border border-stone-200 dark:border-stone-700 bg-white dark:bg-stone-800 text-sm text-stone-700 dark:text-stone-200
                focus:outline-none focus:ring-2 focus:ring-indigo-500">
         <option value="all" {{if eq .Filter.Status ""}}selected{{end}}>All statuses</option>
         <option value="draft"       {{if eq .Filter.Status "draft"}}selected{{end}}>Draft</option>
@@ -46,7 +46,7 @@
         hx-trigger="change"
         hx-target="#request-list-area"
         hx-include="[name='search'],#filter-status"
-        class="px-3 py-2 rounded-xl border border-stone-200 bg-white text-sm text-stone-700
+        class="px-3 py-2 rounded-xl border border-stone-200 dark:border-stone-700 bg-white dark:bg-stone-800 text-sm text-stone-700 dark:text-stone-200
                focus:outline-none focus:ring-2 focus:ring-indigo-500">
         <option value="all"      {{if eq .Filter.Priority ""}}selected{{end}}>All priorities</option>
         <option value="critical" {{if eq .Filter.Priority "critical"}}selected{{end}}>Critical</option>
@@ -56,6 +56,9 @@
       </select>
     </div>
   </div>
+
+  <!-- Batch toolbar -->
+  {{template "batch_toolbar" .}}
 
   <!-- Request list (HTMX-swappable) -->
   <div id="request-list-area">

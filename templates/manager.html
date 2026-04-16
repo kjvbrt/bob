@@ -1,0 +1,43 @@
+{{define "content"}}
+<div class="space-y-6">
+
+  <!-- Header -->
+  <div class="flex items-center justify-between">
+    <div>
+      <h1 class="text-2xl font-semibold text-stone-900 dark:text-stone-100">Pipeline</h1>
+      <p class="text-sm text-stone-500 mt-0.5">Active dataset requests requiring attention</p>
+    </div>
+  </div>
+
+  <!-- Pipeline stats -->
+  {{if .Stats}}
+  <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+    <div class="stat-card">
+      <p class="text-2xl font-bold text-amber-600">{{.Stats.Pending}}</p>
+      <p class="text-xs text-stone-500 mt-1 font-medium uppercase tracking-wide">Pending Review</p>
+    </div>
+    <div class="stat-card">
+      <p class="text-2xl font-bold text-violet-600">{{.Stats.InProgress}}</p>
+      <p class="text-xs text-stone-500 mt-1 font-medium uppercase tracking-wide">In Progress</p>
+    </div>
+    <div class="stat-card">
+      <p class="text-2xl font-bold text-red-500">{{.Stats.Critical}}</p>
+      <p class="text-xs text-stone-500 mt-1 font-medium uppercase tracking-wide">Critical</p>
+    </div>
+    <div class="stat-card">
+      <p class="text-2xl font-bold text-stone-700">{{.Stats.Total}}</p>
+      <p class="text-xs text-stone-500 mt-1 font-medium uppercase tracking-wide">Total</p>
+    </div>
+  </div>
+  {{end}}
+
+  <!-- Batch toolbar -->
+  {{template "batch_toolbar" .}}
+
+  <!-- Active request list -->
+  <div id="request-list-area">
+    {{template "request_list" .}}
+  </div>
+
+</div>
+{{end}}

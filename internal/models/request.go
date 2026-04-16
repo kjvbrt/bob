@@ -28,23 +28,27 @@ const (
 )
 
 type DatasetRequest struct {
-	ID             int
-	Title          string
-	Description    string
-	RequesterName  string
-	RequesterEmail string
-	Department     string
-	DatasetType    string
-	UseCase        string
-	Status         Status
-	Priority       Priority
-	EstimatedSize  string
-	Format         string
-	DueDate        string
-	Notes          string
-	Tags           string
-	CreatedAt      time.Time
-	UpdatedAt      time.Time
+	ID                    int
+	Title                 string
+	Description           string
+	RequesterName         string
+	RequesterUsername     string
+	RequesterEmail        string
+	Department            string
+	DatasetType           string
+	UseCase               string
+	Status                Status
+	Priority              Priority
+	EstimatedSize         string
+	Format                string
+	DueDate               string
+	Notes                 string
+	Tags                  string
+	CreatedBy             int
+	AssignedTo            int
+	AssignedToName        string
+	CreatedAt             time.Time
+	UpdatedAt             time.Time
 }
 
 func (r *DatasetRequest) StatusLabel() string {
@@ -106,40 +110,47 @@ type Stats struct {
 	Rejected   int
 }
 
-type Repository struct {
+type RequestStore struct {
 	db *sql.DB
 }
 
-func NewRepository(db *sql.DB) *Repository {
-	return &Repository{db: db}
+func NewRequestStore(db *sql.DB) *RequestStore {
+	return &RequestStore{db: db}
 }
 
-func (r *Repository) GetAll(status, priority, search string) ([]*DatasetRequest, error) {
-	query := `SELECT id, title, description, requester_name, requester_email,
-		department, dataset_type, use_case, status, priority, estimated_size,
-		format, due_date, notes, tags, created_at, updated_at
-		FROM dataset_requests WHERE 1=1`
+const selectCols = `
+	dr.id, dr.title, dr.description, dr.requester_name, dr.requester_username, dr.requester_email,
+	dr.department, dr.dataset_type, dr.use_case, dr.status, dr.priority, dr.estimated_size,
+	dr.format, dr.due_date, dr.notes, dr.tags, COALESCE(dr.created_by,0),
+	COALESCE(dr.assigned_to,0), COALESCE(au.display_name,''),
+	dr.created_at, dr.updated_at`
+
+func (r *RequestStore) GetAll(status, priority, search string) ([]*DatasetRequest, error) {
+	query := `SELECT` + selectCols + `
+		FROM dataset_requests dr
+		LEFT JOIN users au ON au.id = dr.assigned_to
+		WHERE 1=1`
 
 	args := []interface{}{}
 
 	if status != "" && status != "all" {
-		query += " AND status = ?"
+		query += " AND dr.status = ?"
 		args = append(args, status)
 	}
 	if priority != "" && priority != "all" {
-		query += " AND priority = ?"
+		query += " AND dr.priority = ?"
 		args = append(args, priority)
 	}
 	if search != "" {
-		query += " AND (title LIKE ? OR description LIKE ? OR requester_name LIKE ? OR department LIKE ?)"
+		query += " AND (dr.title LIKE ? OR dr.description LIKE ? OR dr.requester_name LIKE ? OR dr.department LIKE ?)"
 		s := "%" + search + "%"
 		args = append(args, s, s, s, s)
 	}
 
 	query += ` ORDER BY
-		CASE priority WHEN 'critical' THEN 0 WHEN 'high' THEN 1 WHEN 'medium' THEN 2 ELSE 3 END,
-		CASE status WHEN 'in_progress' THEN 0 WHEN 'pending' THEN 1 WHEN 'approved' THEN 2 ELSE 3 END,
-		created_at DESC`
+		CASE dr.priority WHEN 'critical' THEN 0 WHEN 'high' THEN 1 WHEN 'medium' THEN 2 ELSE 3 END,
+		CASE dr.status WHEN 'in_progress' THEN 0 WHEN 'pending' THEN 1 WHEN 'approved' THEN 2 ELSE 3 END,
+		dr.created_at DESC`
 
 	rows, err := r.db.Query(query, args...)
 	if err != nil {
@@ -158,24 +169,53 @@ func (r *Repository) GetAll(status, priority, search string) ([]*DatasetRequest,
 	return requests, rows.Err()
 }
 
-func (r *Repository) GetByID(id int) (*DatasetRequest, error) {
-	row := r.db.QueryRow(`SELECT id, title, description, requester_name, requester_email,
-		department, dataset_type, use_case, status, priority, estimated_size,
-		format, due_date, notes, tags, created_at, updated_at
-		FROM dataset_requests WHERE id = ?`, id)
+// GetActive returns non-terminal requests (pending, approved, in_progress) sorted by priority then age.
+func (r *RequestStore) GetActive() ([]*DatasetRequest, error) {
+	rows, err := r.db.Query(`SELECT` + selectCols + `
+		FROM dataset_requests dr
+		LEFT JOIN users au ON au.id = dr.assigned_to
+		WHERE dr.status IN ('pending', 'approved', 'in_progress')
+		ORDER BY
+			CASE dr.priority WHEN 'critical' THEN 0 WHEN 'high' THEN 1 WHEN 'medium' THEN 2 ELSE 3 END,
+			dr.created_at ASC`)
+	if err != nil {
+		return nil, fmt.Errorf("query active requests: %w", err)
+	}
+	defer rows.Close()
+
+	var requests []*DatasetRequest
+	for rows.Next() {
+		req, err := scanRequest(rows)
+		if err != nil {
+			return nil, err
+		}
+		requests = append(requests, req)
+	}
+	return requests, rows.Err()
+}
+
+func (r *RequestStore) GetByID(id int) (*DatasetRequest, error) {
+	row := r.db.QueryRow(`SELECT`+selectCols+`
+		FROM dataset_requests dr
+		LEFT JOIN users au ON au.id = dr.assigned_to
+		WHERE dr.id = ?`, id)
 	return scanRequest(row)
 }
 
-func (r *Repository) Create(req *DatasetRequest) (int64, error) {
+func (r *RequestStore) Create(req *DatasetRequest) (int64, error) {
+	var createdBy interface{}
+	if req.CreatedBy != 0 {
+		createdBy = req.CreatedBy
+	}
 	result, err := r.db.Exec(`
 		INSERT INTO dataset_requests
-			(title, description, requester_name, requester_email, department,
-			 dataset_type, use_case, status, priority, estimated_size, format,
-			 due_date, notes, tags)
-		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-		req.Title, req.Description, req.RequesterName, req.RequesterEmail,
+			(title, description, requester_name, requester_username, requester_email,
+			 department, dataset_type, use_case, status, priority, estimated_size, format,
+			 due_date, notes, tags, created_by)
+		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+		req.Title, req.Description, req.RequesterName, req.RequesterUsername, req.RequesterEmail,
 		req.Department, req.DatasetType, req.UseCase, req.Status, req.Priority,
-		req.EstimatedSize, req.Format, req.DueDate, req.Notes, req.Tags,
+		req.EstimatedSize, req.Format, req.DueDate, req.Notes, req.Tags, createdBy,
 	)
 	if err != nil {
 		return 0, fmt.Errorf("insert request: %w", err)
@@ -183,31 +223,45 @@ func (r *Repository) Create(req *DatasetRequest) (int64, error) {
 	return result.LastInsertId()
 }
 
-func (r *Repository) Update(req *DatasetRequest) error {
+func (r *RequestStore) Update(req *DatasetRequest) error {
 	_, err := r.db.Exec(`
 		UPDATE dataset_requests SET
-			title=?, description=?, requester_name=?, requester_email=?,
+			title=?, description=?, requester_name=?, requester_username=?, requester_email=?,
 			department=?, dataset_type=?, use_case=?, status=?, priority=?,
 			estimated_size=?, format=?, due_date=?, notes=?, tags=?
 		WHERE id=?`,
-		req.Title, req.Description, req.RequesterName, req.RequesterEmail,
+		req.Title, req.Description, req.RequesterName, req.RequesterUsername, req.RequesterEmail,
 		req.Department, req.DatasetType, req.UseCase, req.Status, req.Priority,
 		req.EstimatedSize, req.Format, req.DueDate, req.Notes, req.Tags, req.ID,
 	)
 	return err
 }
 
-func (r *Repository) UpdateStatus(id int, status Status) error {
+func (r *RequestStore) UpdateStatus(id int, status Status) error {
 	_, err := r.db.Exec("UPDATE dataset_requests SET status=? WHERE id=?", status, id)
 	return err
 }
 
-func (r *Repository) Delete(id int) error {
+func (r *RequestStore) UpdatePriority(id int, priority Priority) error {
+	_, err := r.db.Exec("UPDATE dataset_requests SET priority=? WHERE id=?", priority, id)
+	return err
+}
+
+func (r *RequestStore) Assign(id, assignedTo int) error {
+	var uid interface{}
+	if assignedTo != 0 {
+		uid = assignedTo
+	}
+	_, err := r.db.Exec("UPDATE dataset_requests SET assigned_to=? WHERE id=?", uid, id)
+	return err
+}
+
+func (r *RequestStore) Delete(id int) error {
 	_, err := r.db.Exec("DELETE FROM dataset_requests WHERE id=?", id)
 	return err
 }
 
-func (r *Repository) GetStats() (*Stats, error) {
+func (r *RequestStore) GetStats() (*Stats, error) {
 	var stats Stats
 	row := r.db.QueryRow(`
 		SELECT
@@ -226,12 +280,11 @@ func (r *Repository) GetStats() (*Stats, error) {
 	return &stats, err
 }
 
-func (r *Repository) GetRecent(limit int) ([]*DatasetRequest, error) {
-	rows, err := r.db.Query(`
-		SELECT id, title, description, requester_name, requester_email,
-		department, dataset_type, use_case, status, priority, estimated_size,
-		format, due_date, notes, tags, created_at, updated_at
-		FROM dataset_requests ORDER BY created_at DESC LIMIT ?`, limit)
+func (r *RequestStore) GetRecent(limit int) ([]*DatasetRequest, error) {
+	rows, err := r.db.Query(`SELECT`+selectCols+`
+		FROM dataset_requests dr
+		LEFT JOIN users au ON au.id = dr.assigned_to
+		ORDER BY dr.created_at DESC LIMIT ?`, limit)
 	if err != nil {
 		return nil, err
 	}
@@ -256,9 +309,10 @@ func scanRequest(row scannable) (*DatasetRequest, error) {
 	var req DatasetRequest
 	var createdAt, updatedAt string
 	err := row.Scan(
-		&req.ID, &req.Title, &req.Description, &req.RequesterName, &req.RequesterEmail,
+		&req.ID, &req.Title, &req.Description, &req.RequesterName, &req.RequesterUsername, &req.RequesterEmail,
 		&req.Department, &req.DatasetType, &req.UseCase, &req.Status, &req.Priority,
 		&req.EstimatedSize, &req.Format, &req.DueDate, &req.Notes, &req.Tags,
+		&req.CreatedBy, &req.AssignedTo, &req.AssignedToName,
 		&createdAt, &updatedAt,
 	)
 	if err != nil {

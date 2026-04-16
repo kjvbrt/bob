@@ -1,0 +1,22 @@
+{{define "assignment"}}
+<div id="assignment-area" class="detail-item">
+  <span class="detail-label">Assigned To</span>
+  {{if .CurrentUser.IsManager}}
+  <select name="assigned_to"
+          hx-post="/requests/{{.Request.ID}}/assign"
+          hx-target="#assignment-area"
+          hx-swap="outerHTML"
+          hx-trigger="change"
+          class="mt-1 w-full text-sm text-stone-900 dark:text-stone-100 bg-transparent border-none outline-none cursor-pointer font-medium">
+    <option value="0" {{if eq .Request.AssignedTo 0}}selected{{end}}>— Unassigned —</option>
+    {{range .Managers}}
+    <option value="{{.ID}}" {{if eq .ID $.Request.AssignedTo}}selected{{end}}>{{.DisplayName}}</option>
+    {{end}}
+  </select>
+  {{else}}
+  <span class="detail-value">
+    {{if .Request.AssignedToName}}{{.Request.AssignedToName}}{{else}}—{{end}}
+  </span>
+  {{end}}
+</div>
+{{end}}

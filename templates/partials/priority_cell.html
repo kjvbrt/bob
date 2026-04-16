@@ -1,0 +1,23 @@
+{{define "priority_cell"}}
+{{with .Request}}
+{{if $.CurrentUser.IsManager}}
+<select name="priority"
+        hx-post="/requests/{{.ID}}/priority"
+        hx-target="#priority-cell-{{.ID}}"
+        hx-swap="innerHTML"
+        hx-trigger="change"
+        class="priority-select {{priorityClass .Priority}}"
+        title="Change priority">
+  <option value="low"      {{if eq .Priority "low"}}selected{{end}}>Low</option>
+  <option value="medium"   {{if eq .Priority "medium"}}selected{{end}}>Medium</option>
+  <option value="high"     {{if eq .Priority "high"}}selected{{end}}>High</option>
+  <option value="critical" {{if eq .Priority "critical"}}selected{{end}}>Critical</option>
+</select>
+{{else}}
+<span class="inline-flex items-center gap-1.5">
+  <span class="priority-pip {{priorityClass .Priority}}"></span>
+  <span class="text-xs text-stone-600">{{.PriorityLabel}}</span>
+</span>
+{{end}}
+{{end}}
+{{end}}

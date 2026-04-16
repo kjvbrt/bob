@@ -5,21 +5,21 @@
   <!-- Total -->
   <div class="stat-card col-span-1">
     <div class="flex items-center justify-between mb-4">
-      <div class="w-10 h-10 rounded-2xl bg-indigo-100 flex items-center justify-center">
-        <svg class="w-5 h-5 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+      <div class="w-10 h-10 rounded-2xl bg-indigo-100 dark:bg-indigo-900/40 flex items-center justify-center">
+        <svg class="w-5 h-5 text-indigo-600 dark:text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
           <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
         </svg>
       </div>
       <span class="text-xs font-medium text-stone-400 uppercase tracking-wide">Total</span>
     </div>
-    <p class="text-4xl font-bold text-stone-900 tabular-nums">{{.Stats.Total}}</p>
+    <p class="text-4xl font-bold text-stone-900 dark:text-stone-100 tabular-nums">{{.Stats.Total}}</p>
     <p class="text-sm text-stone-500 mt-1">All requests</p>
   </div>
 
   <!-- Pending -->
   <div class="stat-card col-span-1 border-l-4 border-amber-400">
     <div class="flex items-center justify-between mb-4">
-      <div class="w-10 h-10 rounded-2xl bg-amber-100 flex items-center justify-center">
+      <div class="w-10 h-10 rounded-2xl bg-amber-100 dark:bg-amber-900/40 flex items-center justify-center">
         <svg class="w-5 h-5 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
           <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
         </svg>
@@ -33,7 +33,7 @@
   <!-- In Progress -->
   <div class="stat-card col-span-1 border-l-4 border-violet-400">
     <div class="flex items-center justify-between mb-4">
-      <div class="w-10 h-10 rounded-2xl bg-violet-100 flex items-center justify-center">
+      <div class="w-10 h-10 rounded-2xl bg-violet-100 dark:bg-violet-900/40 flex items-center justify-center">
         <svg class="w-5 h-5 text-violet-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
           <path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/>
         </svg>
@@ -47,7 +47,7 @@
   <!-- Completed -->
   <div class="stat-card col-span-1 border-l-4 border-emerald-400">
     <div class="flex items-center justify-between mb-4">
-      <div class="w-10 h-10 rounded-2xl bg-emerald-100 flex items-center justify-center">
+      <div class="w-10 h-10 rounded-2xl bg-emerald-100 dark:bg-emerald-900/40 flex items-center justify-center">
         <svg class="w-5 h-5 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
           <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
         </svg>
@@ -61,16 +61,16 @@
 </div>
 
 {{if gt .Stats.Critical 0}}
-<div class="rounded-2xl bg-red-50 border border-red-200 px-4 py-3 flex items-center gap-3">
-  <div class="w-8 h-8 rounded-xl bg-red-100 flex items-center justify-center shrink-0">
-    <svg class="w-4 h-4 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+<div class="rounded-2xl bg-red-50 dark:bg-red-950/50 border border-red-200 dark:border-red-900/60 px-4 py-3 flex items-center gap-3">
+  <div class="w-8 h-8 rounded-xl bg-red-100 dark:bg-red-900/40 flex items-center justify-center shrink-0">
+    <svg class="w-4 h-4 text-red-600 dark:text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
       <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
     </svg>
   </div>
-  <p class="text-sm text-red-700 font-medium">
+  <p class="text-sm text-red-700 dark:text-red-400 font-medium">
     {{.Stats.Critical}} critical priority request{{if gt .Stats.Critical 1}}s{{end}} need{{if eq .Stats.Critical 1}}s{{end}} attention
   </p>
-  <a href="/requests?priority=critical" class="ml-auto text-xs font-semibold text-red-600 hover:text-red-700 shrink-0">View →</a>
+  <a href="/requests?priority=critical" class="ml-auto text-xs font-semibold text-red-600 dark:text-red-400 hover:text-red-700 shrink-0">View →</a>
 </div>
 {{end}}
 

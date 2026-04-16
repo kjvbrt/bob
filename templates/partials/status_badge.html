@@ -1,4 +1,6 @@
 {{define "status_badge"}}
+{{with .Request}}
+{{if $.CurrentUser.IsManager}}
 <select
   name="status"
   hx-post="/requests/{{.ID}}/status"
@@ -15,4 +17,8 @@
   <option value="rejected"    {{if eq .Status "rejected"}}selected{{end}}>Rejected</option>
   <option value="cancelled"   {{if eq .Status "cancelled"}}selected{{end}}>Cancelled</option>
 </select>
+{{else}}
+<span class="status-badge {{statusClass .Status}}">{{.StatusLabel}}</span>
+{{end}}
+{{end}}
 {{end}}
