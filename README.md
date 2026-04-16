@@ -4,7 +4,7 @@ A web-based dataset request tracking system for analysis and detector design at 
 
 Bob keeps an eye on your data needs — simulation samples, reconstruction outputs, detector ntuples — and makes sure nothing falls through the cracks.
 
-![Bob the Tracker logo](static/logo.png)
+<img src="static/logo.png" alt="Bob the Tracker logo" width="80"/>
 
 ---
 
