@@ -1,10 +1,13 @@
 # Bob the Tracker
 
-A web-based dataset request tracking system for analysis and detector design at the [Future Circular Collider (FCC)](https://fcc.web.cern.ch/).
+A web-based dataset request tracking system for centrally produced datasets
+used in analysis, detector design studies, and other physics related areas at
+the [Future Circular Collider (FCC)](https://fcc.web.cern.ch/).
 
-Bob keeps an eye on your data needs — simulation samples, reconstruction outputs, detector ntuples — and makes sure nothing falls through the cracks.
+Bob keeps an eye on the dataset needs of the community around the FCC and makes
+sure nothing falls through the cracks.
 
-<img src="static/logo.png" alt="Bob the Tracker logo" width="80"/>
+<p align="center"><img src="static/logo.png" alt="Bob the Tracker logo" width="160"/></p>
 
 ---
 
