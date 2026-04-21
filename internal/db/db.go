@@ -36,6 +36,9 @@ func migrate(database *sql.DB) error {
 	// Rename migrations from cern_username → username (SQLite 3.25+).
 	database.Exec(`ALTER TABLE dataset_requests RENAME COLUMN requester_cern_username TO requester_username`)
 	database.Exec(`ALTER TABLE users RENAME COLUMN cern_username TO username`)
+	// Parallel approval tracks.
+	database.Exec(`ALTER TABLE dataset_requests ADD COLUMN physics_approval TEXT NOT NULL DEFAULT ''`)
+	database.Exec(`ALTER TABLE dataset_requests ADD COLUMN resources_approval TEXT NOT NULL DEFAULT ''`)
 
 	_, err := database.Exec(`
 		CREATE TABLE IF NOT EXISTS users (

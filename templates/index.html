@@ -45,6 +45,45 @@
         <div class="prose-md text-xs text-stone-500 dark:text-stone-400 leading-relaxed mb-3" data-md>{{truncate .Description 100}}</div>
         {{end}}
 
+        {{if or (eq .Status "pending") (ne .PhysicsApproval "") (ne .ResourcesApproval "")}}
+        <div class="flex items-center gap-3 mb-3">
+          <!-- Physics approval -->
+          <div class="flex items-center gap-1">
+            {{if eq .PhysicsApproval "approved"}}
+            <svg class="w-3.5 h-3.5 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/>
+            </svg>
+            {{else if eq .PhysicsApproval "rejected"}}
+            <svg class="w-3.5 h-3.5 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+            </svg>
+            {{else}}
+            <svg class="w-3.5 h-3.5 text-stone-300 dark:text-stone-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="9"/>
+            </svg>
+            {{end}}
+            <span class="text-[10px] text-stone-400 dark:text-stone-500">Physics</span>
+          </div>
+          <!-- Resources approval -->
+          <div class="flex items-center gap-1">
+            {{if eq .ResourcesApproval "approved"}}
+            <svg class="w-3.5 h-3.5 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/>
+            </svg>
+            {{else if eq .ResourcesApproval "rejected"}}
+            <svg class="w-3.5 h-3.5 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+            </svg>
+            {{else}}
+            <svg class="w-3.5 h-3.5 text-stone-300 dark:text-stone-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="9"/>
+            </svg>
+            {{end}}
+            <span class="text-[10px] text-stone-400 dark:text-stone-500">Resources</span>
+          </div>
+        </div>
+        {{end}}
+
         <div class="mt-auto pt-3 border-t border-stone-100 dark:border-stone-700 flex items-center justify-between">
           <div class="flex items-center gap-1.5">
             <div class="w-6 h-6 rounded-full bg-indigo-100 dark:bg-indigo-900/40 flex items-center justify-center">

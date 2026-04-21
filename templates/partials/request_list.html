@@ -28,6 +28,7 @@
         </td>
         {{end}}
         <td class="px-5 py-4">
+          {{if eq $.Title "Dashboard"}}
           <a href="/requests/{{.ID}}"
              hx-get="/requests/{{.ID}}"
              hx-target="#modal-container"
@@ -35,6 +36,11 @@
              onclick="document.getElementById('modal-overlay').classList.remove('hidden')"
              class="font-medium text-stone-900 dark:text-stone-100 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors block"
              data-md-inline>{{truncate .Title 50}}</a>
+          {{else}}
+          <a href="/requests/{{.ID}}"
+             class="font-medium text-stone-900 dark:text-stone-100 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors block"
+             data-md-inline>{{truncate .Title 50}}</a>
+          {{end}}
           {{if .Description}}
           <div class="prose-md text-xs text-stone-400 mt-0.5" data-md>{{truncate .Description 70}}</div>
           {{end}}
@@ -68,7 +74,7 @@
             class="status-select {{statusClass .Status}}"
             title="Change status">
             <option value="draft"       {{if eq .Status "draft"}}selected{{end}}>Draft</option>
-            <option value="pending"     {{if eq .Status "pending"}}selected{{end}}>Pending Review</option>
+            <option value="pending"     {{if eq .Status "pending"}}selected{{end}}>Under Review</option>
             <option value="approved"    {{if eq .Status "approved"}}selected{{end}}>Approved</option>
             <option value="in_progress" {{if eq .Status "in_progress"}}selected{{end}}>In Progress</option>
             <option value="completed"   {{if eq .Status "completed"}}selected{{end}}>Completed</option>
@@ -77,6 +83,30 @@
           </select>
           {{else}}
           <span class="status-badge {{statusClass .Status}}">{{.StatusLabel}}</span>
+          {{end}}
+          {{if or (eq .Status "pending") (ne .PhysicsApproval "") (ne .ResourcesApproval "")}}
+          <div class="flex items-center gap-2 mt-1.5">
+            <div class="flex items-center gap-0.5" title="Physics approval: {{if eq .PhysicsApproval "approved"}}approved{{else if eq .PhysicsApproval "rejected"}}rejected{{else}}pending{{end}}">
+              {{if eq .PhysicsApproval "approved"}}
+              <svg class="w-3 h-3 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/></svg>
+              {{else if eq .PhysicsApproval "rejected"}}
+              <svg class="w-3 h-3 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+              {{else}}
+              <svg class="w-3 h-3 text-stone-300 dark:text-stone-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/></svg>
+              {{end}}
+              <span class="text-[10px] text-stone-400 dark:text-stone-500 leading-none">Phys</span>
+            </div>
+            <div class="flex items-center gap-0.5" title="Resources approval: {{if eq .ResourcesApproval "approved"}}approved{{else if eq .ResourcesApproval "rejected"}}rejected{{else}}pending{{end}}">
+              {{if eq .ResourcesApproval "approved"}}
+              <svg class="w-3 h-3 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/></svg>
+              {{else if eq .ResourcesApproval "rejected"}}
+              <svg class="w-3 h-3 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+              {{else}}
+              <svg class="w-3 h-3 text-stone-300 dark:text-stone-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/></svg>
+              {{end}}
+              <span class="text-[10px] text-stone-400 dark:text-stone-500 leading-none">Res</span>
+            </div>
+          </div>
           {{end}}
         </td>
         <td class="px-5 py-4 hidden lg:table-cell" id="priority-cell-{{.ID}}">

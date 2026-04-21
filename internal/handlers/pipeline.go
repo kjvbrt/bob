@@ -11,18 +11,7 @@ import (
 )
 
 func (h *Handler) ManagerView(w http.ResponseWriter, r *http.Request) {
-	requests, err := h.requests.GetActive()
-	if err != nil {
-		slog.Error("get active requests", "error", err)
-		http.Error(w, "Internal Server Error", 500)
-		return
-	}
-	stats, _ := h.requests.GetStats()
-	h.renderPage(w, r, "manager", PageData{
-		Title:    "Pipeline",
-		Requests: requests,
-		Stats:    stats,
-	})
+	http.Redirect(w, r, "/requests", http.StatusMovedPermanently)
 }
 
 func (h *Handler) AddComment(w http.ResponseWriter, r *http.Request) {

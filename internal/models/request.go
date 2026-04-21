@@ -47,8 +47,21 @@ type DatasetRequest struct {
 	CreatedBy             int
 	AssignedTo            int
 	AssignedToName        string
+	PhysicsApproval       string // "" | "approved" | "rejected"
+	ResourcesApproval     string // "" | "approved" | "rejected"
 	CreatedAt             time.Time
 	UpdatedAt             time.Time
+}
+
+func (r *DatasetRequest) ApprovalLabel(v string) string {
+	switch v {
+	case "approved":
+		return "Approved"
+	case "rejected":
+		return "Rejected"
+	default:
+		return "Pending"
+	}
 }
 
 func (r *DatasetRequest) StatusLabel() string {
@@ -56,7 +69,7 @@ func (r *DatasetRequest) StatusLabel() string {
 	case StatusDraft:
 		return "Draft"
 	case StatusPending:
-		return "Pending Review"
+		return "Under Review"
 	case StatusApproved:
 		return "Approved"
 	case StatusRejected:
@@ -123,6 +136,7 @@ const selectCols = `
 	dr.department, dr.dataset_type, dr.use_case, dr.status, dr.priority, dr.estimated_size,
 	dr.format, dr.due_date, dr.notes, dr.tags, COALESCE(dr.created_by,0),
 	COALESCE(dr.assigned_to,0), COALESCE(au.display_name,''),
+	COALESCE(dr.physics_approval,''), COALESCE(dr.resources_approval,''),
 	dr.created_at, dr.updated_at`
 
 func (r *RequestStore) GetAll(status, priority, search string) ([]*DatasetRequest, error) {
@@ -150,7 +164,7 @@ func (r *RequestStore) GetAll(status, priority, search string) ([]*DatasetReques
 	query += ` ORDER BY
 		CASE dr.priority WHEN 'critical' THEN 0 WHEN 'high' THEN 1 WHEN 'medium' THEN 2 ELSE 3 END,
 		CASE dr.status WHEN 'in_progress' THEN 0 WHEN 'pending' THEN 1 WHEN 'approved' THEN 2 ELSE 3 END,
-		dr.created_at DESC`
+		dr.updated_at DESC`
 
 	rows, err := r.db.Query(query, args...)
 	if err != nil {
@@ -242,6 +256,20 @@ func (r *RequestStore) UpdateStatus(id int, status Status) error {
 	return err
 }
 
+func (r *RequestStore) UpdateApproval(id int, track, decision string) error {
+	col := "physics_approval"
+	if track == "resources" {
+		col = "resources_approval"
+	}
+	_, err := r.db.Exec("UPDATE dataset_requests SET "+col+"=? WHERE id=?", decision, id)
+	return err
+}
+
+func (r *RequestStore) ResetApprovals(id int) error {
+	_, err := r.db.Exec("UPDATE dataset_requests SET physics_approval='', resources_approval='' WHERE id=?", id)
+	return err
+}
+
 func (r *RequestStore) UpdatePriority(id int, priority Priority) error {
 	_, err := r.db.Exec("UPDATE dataset_requests SET priority=? WHERE id=?", priority, id)
 	return err
@@ -313,6 +341,7 @@ func scanRequest(row scannable) (*DatasetRequest, error) {
 		&req.Department, &req.DatasetType, &req.UseCase, &req.Status, &req.Priority,
 		&req.EstimatedSize, &req.Format, &req.DueDate, &req.Notes, &req.Tags,
 		&req.CreatedBy, &req.AssignedTo, &req.AssignedToName,
+		&req.PhysicsApproval, &req.ResourcesApproval,
 		&createdAt, &updatedAt,
 	)
 	if err != nil {

@@ -62,24 +62,26 @@
     <!-- Use case + Dataset Stage -->
     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
       <div>
-        <label class="form-label">Use Case</label>
-        <select name="use_case" class="form-input">
+        <label class="form-label">Use Case <span class="text-red-500">*</span></label>
+        <select name="use_case" required class="form-input">
           {{$uc := ""}}{{if .Request}}{{$uc = .Request.UseCase}}{{end}}
-          <option value="physics_analysis"   {{if eq $uc "physics_analysis"}}selected{{else}}{{if eq $uc ""}}selected{{end}}{{end}}>Physics Analysis</option>
+          <option value="" {{if eq $uc ""}}selected{{end}} disabled>— Select use case —</option>
+          <option value="physics_analysis"    {{if eq $uc "physics_analysis"}}selected{{end}}>Physics Analysis</option>
           <option value="reconstruction_dev"  {{if eq $uc "reconstruction_dev"}}selected{{end}}>Reconstruction Development</option>
-          <option value="detector_simulation"{{if eq $uc "detector_simulation"}}selected{{end}}>Detector Simulation</option>
-          <option value="ml_training"        {{if eq $uc "ml_training"}}selected{{end}}>ML Training</option>
-          <option value="ml_evaluation"      {{if eq $uc "ml_evaluation"}}selected{{end}}>ML Evaluation</option>
-          <option value="benchmarking"       {{if eq $uc "benchmarking"}}selected{{end}}>Benchmarking</option>
-          <option value="calibration"        {{if eq $uc "calibration"}}selected{{end}}>Calibration</option>
-          <option value="other"              {{if eq $uc "other"}}selected{{end}}>Other</option>
+          <option value="detector_simulation" {{if eq $uc "detector_simulation"}}selected{{end}}>Detector Simulation</option>
+          <option value="ml_training"         {{if eq $uc "ml_training"}}selected{{end}}>ML Training</option>
+          <option value="ml_evaluation"       {{if eq $uc "ml_evaluation"}}selected{{end}}>ML Evaluation</option>
+          <option value="benchmarking"        {{if eq $uc "benchmarking"}}selected{{end}}>Benchmarking</option>
+          <option value="calibration"         {{if eq $uc "calibration"}}selected{{end}}>Calibration</option>
+          <option value="other"               {{if eq $uc "other"}}selected{{end}}>Other</option>
         </select>
       </div>
       <div>
-        <label class="form-label">Dataset Stage</label>
-        <select name="dataset_type" class="form-input">
+        <label class="form-label">Dataset Stage <span class="text-red-500">*</span></label>
+        <select name="dataset_type" required class="form-input">
           {{$dt := ""}}{{if .Request}}{{$dt = .Request.DatasetType}}{{end}}
-          <option value="generation"     {{if eq $dt "generation"}}selected{{else}}{{if eq $dt ""}}selected{{end}}{{end}}>Generation</option>
+          <option value="" {{if eq $dt ""}}selected{{end}} disabled>— Select stage —</option>
+          <option value="generation"     {{if eq $dt "generation"}}selected{{end}}>Generation</option>
           <option value="simulation"     {{if eq $dt "simulation"}}selected{{end}}>Simulation</option>
           <option value="reconstruction" {{if eq $dt "reconstruction"}}selected{{end}}>Reconstruction</option>
           <option value="other"          {{if eq $dt "other"}}selected{{end}}>Other</option>
@@ -90,32 +92,65 @@
     <!-- Working group + Format -->
     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
       <div>
-        <label class="form-label">Working Group / Team</label>
-        <input type="text" name="department"
-               value="{{if .Request}}{{.Request.Department}}{{end}}"
-               placeholder="e.g. Tracker WG, Calorimetry WG"
-               class="form-input"/>
+        <label class="form-label">Physics or Software Group / Team <span class="text-red-500">*</span></label>
+        {{$dept := ""}}{{if .Request}}{{$dept = .Request.Department}}{{end}}
+        <select name="department" required class="form-input">
+          <option value="" {{if eq $dept ""}}selected{{end}} disabled>— Select group or team —</option>
+          <optgroup label="Physics Groups">
+            <option value="BSM physics"                    {{if eq $dept "BSM physics"}}selected{{end}}>BSM physics</option>
+            <option value="Electroweak physics"            {{if eq $dept "Electroweak physics"}}selected{{end}}>Electroweak physics</option>
+            <option value="FCC-hh physics"                 {{if eq $dept "FCC-hh physics"}}selected{{end}}>FCC-hh physics</option>
+            <option value="Flavour physics"                {{if eq $dept "Flavour physics"}}selected{{end}}>Flavour physics</option>
+            <option value="Global fits &amp; EFT"          {{if eq $dept "Global fits & EFT"}}selected{{end}}>Global fits &amp; EFT</option>
+            <option value="Higgs physics"                  {{if eq $dept "Higgs physics"}}selected{{end}}>Higgs physics</option>
+            <option value="Precision calculations"         {{if eq $dept "Precision calculations"}}selected{{end}}>Precision calculations</option>
+            <option value="QCD and photon-photon physics"  {{if eq $dept "QCD and photon-photon physics"}}selected{{end}}>QCD and photon-photon physics</option>
+            <option value="Top-quark physics"              {{if eq $dept "Top-quark physics"}}selected{{end}}>Top-quark physics</option>
+          </optgroup>
+          <optgroup label="Software Groups">
+            <option value="Computing Resources"                      {{if eq $dept "Computing Resources"}}selected{{end}}>Computing Resources</option>
+            <option value="Core SW/Key4hep, Releases"                {{if eq $dept "Core SW/Key4hep, Releases"}}selected{{end}}>Core SW/Key4hep, Releases</option>
+            <option value="Digitization and Reconstruction Software" {{if eq $dept "Digitization and Reconstruction Software"}}selected{{end}}>Digitization and Reconstruction Software</option>
+            <option value="Documentation and Trainings"              {{if eq $dept "Documentation and Trainings"}}selected{{end}}>Documentation and Trainings</option>
+            <option value="Geometry, Simulation"                     {{if eq $dept "Geometry, Simulation"}}selected{{end}}>Geometry, Simulation</option>
+            <option value="Interaction Region, Beam Backgrounds"     {{if eq $dept "Interaction Region, Beam Backgrounds"}}selected{{end}}>Interaction Region, Beam Backgrounds in Detectors</option>
+            <option value="MC Productions, GRID Tools"               {{if eq $dept "MC Productions, GRID Tools"}}selected{{end}}>MC Productions, GRID Tools</option>
+          </optgroup>
+          <optgroup label="Shared Groups">
+            <option value="Analysis Tools"               {{if eq $dept "Analysis Tools"}}selected{{end}}>Analysis Tools</option>
+            <option value="High-level reconstruction"    {{if eq $dept "High-level reconstruction"}}selected{{end}}>High-level reconstruction</option>
+            <option value="Monte Carlo tools"            {{if eq $dept "Monte Carlo tools"}}selected{{end}}>Monte Carlo tools</option>
+          </optgroup>
+          <optgroup label="Other">
+            <option value="Other"                        {{if eq $dept "Other"}}selected{{end}}>Other</option>
+          </optgroup>
+        </select>
       </div>
       <div>
         <label class="form-label">Format Needed <span class="text-red-500">*</span></label>
-        <input type="text" name="format" required
-               value="{{if .Request}}{{.Request.Format}}{{end}}"
-               placeholder="EDM4hep, HepMC3, ROOT…"
-               class="form-input"/>
+        {{$fmt := ""}}{{if .Request}}{{$fmt = .Request.Format}}{{end}}
+        <select name="format" required class="form-input">
+          <option value="" {{if eq $fmt ""}}selected{{end}} disabled>— Select format —</option>
+          <option value="EDM4hep" {{if eq $fmt "EDM4hep"}}selected{{end}}>EDM4hep</option>
+          <option value="HepMC3"  {{if eq $fmt "HepMC3"}}selected{{end}}>HepMC3</option>
+          <option value="LHEF"    {{if eq $fmt "LHEF"}}selected{{end}}>LHEF</option>
+          <option value="ROOT"        {{if eq $fmt "ROOT"}}selected{{end}}>ROOT</option>
+          <option value="ROOT NTuple" {{if eq $fmt "ROOT NTuple"}}selected{{end}}>ROOT NTuple</option>
+          <option value="ROOT RNTuple" {{if eq $fmt "ROOT RNTuple"}}selected{{end}}>ROOT RNTuple</option>
+          <option value="STDHEP"  {{if eq $fmt "STDHEP"}}selected{{end}}>STDHEP</option>
+          <option value="Other"   {{if eq $fmt "Other"}}selected{{end}}>Other</option>
+        </select>
       </div>
     </div>
 
     <!-- Status (edit only) + Priority -->
-    {{if not .Request}}
-    <input type="hidden" name="status" value="pending"/>
-    {{end}}
     <div class="{{if .Request}}grid grid-cols-1 sm:grid-cols-2 gap-4{{end}}">
       {{if .Request}}
       <div>
         <label class="form-label">Status</label>
         <select name="status" class="form-input">
           <option value="draft"       {{if eq .Request.Status "draft"}}selected{{end}}>Draft</option>
-          <option value="pending"     {{if eq .Request.Status "pending"}}selected{{end}}>Pending Review</option>
+          <option value="pending"     {{if eq .Request.Status "pending"}}selected{{end}}>Under Review</option>
           <option value="approved"    {{if eq .Request.Status "approved"}}selected{{end}}>Approved</option>
           <option value="in_progress" {{if eq .Request.Status "in_progress"}}selected{{end}}>In Progress</option>
           <option value="completed"   {{if eq .Request.Status "completed"}}selected{{end}}>Completed</option>
@@ -176,11 +211,24 @@
                      hover:bg-stone-50 dark:hover:bg-stone-800 transition-colors">
         Cancel
       </button>
+      {{if not .Request}}
+      <button type="submit" name="status" value="draft" formnovalidate
+              class="px-4 py-2.5 rounded-xl border border-stone-200 dark:border-stone-700 text-stone-600 dark:text-stone-300 text-sm font-medium
+                     hover:bg-stone-50 dark:hover:bg-stone-800 transition-colors">
+        Save as Draft
+      </button>
+      <button type="submit" name="status" value="pending"
+              class="px-5 py-2.5 rounded-xl bg-indigo-600 text-white text-sm font-medium
+                     hover:bg-indigo-700 active:scale-95 transition-all shadow-sm">
+        Submit Request
+      </button>
+      {{else}}
       <button type="submit"
               class="px-5 py-2.5 rounded-xl bg-indigo-600 text-white text-sm font-medium
                      hover:bg-indigo-700 active:scale-95 transition-all shadow-sm">
-        {{if .Request}}Save Changes{{else}}Submit Request{{end}}
+        Save Changes
       </button>
+      {{end}}
     </div>
   </form>
 </div>

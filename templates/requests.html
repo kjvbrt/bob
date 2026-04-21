@@ -33,7 +33,7 @@
                focus:outline-none focus:ring-2 focus:ring-indigo-500 flex-1 sm:flex-none">
         <option value="all" {{if eq .Filter.Status ""}}selected{{end}}>All statuses</option>
         <option value="draft"       {{if eq .Filter.Status "draft"}}selected{{end}}>Draft</option>
-        <option value="pending"     {{if eq .Filter.Status "pending"}}selected{{end}}>Pending Review</option>
+        <option value="pending"     {{if eq .Filter.Status "pending"}}selected{{end}}>Under Review</option>
         <option value="approved"    {{if eq .Filter.Status "approved"}}selected{{end}}>Approved</option>
         <option value="in_progress" {{if eq .Filter.Status "in_progress"}}selected{{end}}>In Progress</option>
         <option value="completed"   {{if eq .Filter.Status "completed"}}selected{{end}}>Completed</option>

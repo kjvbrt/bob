@@ -97,6 +97,7 @@ func main() {
 	mux.HandleFunc("GET /manager", middleware.RequireManager(h.ManagerView))
 	mux.HandleFunc("POST /requests/batch", middleware.RequireManager(h.BatchAction))
 	mux.HandleFunc("POST /requests/{id}/status", middleware.RequireManager(h.UpdateStatus))
+	mux.HandleFunc("POST /requests/{id}/approval", middleware.RequireManager(h.ApprovalDecision))
 	mux.HandleFunc("POST /requests/{id}/priority", middleware.RequireManager(h.UpdatePriority))
 	mux.HandleFunc("POST /requests/{id}/assign", middleware.RequireManager(h.AssignRequest))
 	mux.HandleFunc("POST /requests/{id}/comments", middleware.RequireAuth(h.AddComment))

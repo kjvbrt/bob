@@ -197,7 +197,7 @@ type PageData struct {
 	DevMode     bool
 	Updates     []*models.Update
 	Managers    []*models.User
-
+	IsPage      bool // true when rendered as a standalone page, not a modal fragment
 }
 
 type FilterState struct {
@@ -332,6 +332,10 @@ func (h *Handler) CreateRequest(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "title is required", 400)
 		return
 	}
+	if req.Status != models.StatusDraft && (req.UseCase == "" || req.DatasetType == "" || req.Department == "") {
+		http.Error(w, "use case, dataset stage, and group/team are required", 400)
+		return
+	}
 
 	id, err := h.requests.Create(req)
 	if err != nil {
@@ -379,7 +383,7 @@ func (h *Handler) GetRequest(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	h.renderPage(w, r, "request_detail_page", PageData{
-		Title: req.Title, Request: req, Updates: events, Managers: managers,
+		Title: req.Title, Request: req, Updates: events, Managers: managers, IsPage: true,
 	})
 }
 
@@ -488,6 +492,10 @@ func (h *Handler) UpdateStatus(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Internal Server Error", 500)
 		return
 	}
+	// Reset approval tracks when a request re-enters review.
+	if status == models.StatusPending {
+		h.requests.ResetApprovals(id)
+	}
 
 	user := middleware.GetUser(r)
 	userID := 0
@@ -524,6 +532,97 @@ func (h *Handler) DeleteRequest(w http.ResponseWriter, r *http.Request) {
 	}
 	w.Header().Set("HX-Redirect", "/requests")
 	w.WriteHeader(http.StatusOK)
+}
+
+func (h *Handler) ApprovalDecision(w http.ResponseWriter, r *http.Request) {
+	id, err := strconv.Atoi(r.PathValue("id"))
+	if err != nil {
+		http.Error(w, "Not Found", 404)
+		return
+	}
+	if err := r.ParseForm(); err != nil {
+		http.Error(w, "Bad Request", 400)
+		return
+	}
+
+	track := r.FormValue("track")       // "physics" or "resources"
+	decision := r.FormValue("decision") // "approved" or "rejected"
+
+	if track != "physics" && track != "resources" {
+		http.Error(w, "invalid track", 400)
+		return
+	}
+	if decision != "approved" && decision != "rejected" && decision != "revert" {
+		http.Error(w, "invalid decision", 400)
+		return
+	}
+
+	existing, err := h.requests.GetByID(id)
+	if err != nil {
+		http.Error(w, "Not Found", 404)
+		return
+	}
+
+	user := middleware.GetUser(r)
+	userID := 0
+	userName := ""
+	if user != nil {
+		userID = user.ID
+		userName = user.DisplayName
+	}
+
+	trackLabel := "Physics"
+	if track == "resources" {
+		trackLabel = "Resources"
+	}
+
+	approvalValue := decision
+	if decision == "revert" {
+		approvalValue = ""
+	}
+
+	if err := h.requests.UpdateApproval(id, track, approvalValue); err != nil {
+		slog.Error("update approval", "error", err)
+		http.Error(w, "Internal Server Error", 500)
+		return
+	}
+
+	body := trackLabel + " approval: " + decision
+	if userName != "" {
+		body += " (by " + userName + ")"
+	}
+	h.updates.Add(id, userID, models.UpdateStatusChanged, body)
+
+	// Reload to get updated approval fields.
+	req, err := h.requests.GetByID(id)
+	if err != nil {
+		http.Error(w, "Internal Server Error", 500)
+		return
+	}
+
+	// Auto-promote when both tracks approved.
+	if req.PhysicsApproval == "approved" && req.ResourcesApproval == "approved" && req.Status == models.StatusPending {
+		if err := h.requests.UpdateStatus(id, models.StatusApproved); err == nil {
+			h.updates.Add(id, userID, models.UpdateStatusChanged, "under review → approved (both approvals granted)")
+			h.sendStatusEmail(existing, models.StatusApproved)
+		}
+	} else if decision == "rejected" && req.Status == models.StatusPending {
+		if err := h.requests.UpdateStatus(id, models.StatusRejected); err == nil {
+			h.updates.Add(id, userID, models.UpdateStatusChanged, "under review → rejected ("+trackLabel+" approval denied)")
+			h.sendStatusEmail(existing, models.StatusRejected)
+		}
+	} else if decision == "revert" && (req.Status == models.StatusApproved || req.Status == models.StatusRejected) {
+		// Revert overall status back to under review.
+		if err := h.requests.UpdateStatus(id, models.StatusPending); err == nil {
+			h.updates.Add(id, userID, models.UpdateStatusChanged, string(req.Status)+" → under review ("+trackLabel+" approval reverted)")
+		}
+	}
+
+	// Reload again after potential status change.
+	req, _ = h.requests.GetByID(id)
+	updates, _ := h.updates.GetByRequestID(id)
+	managers, _ := h.users.GetManagers()
+	h.renderPartial(w, r, "request_detail", PageData{Request: req, Updates: updates, Managers: managers})
 }
 
 func (h *Handler) GetStats(w http.ResponseWriter, r *http.Request) {
