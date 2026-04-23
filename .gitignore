@@ -2,6 +2,9 @@
 dataset-tracker
 /dataset-tracker
 
+# Tailwind standalone CLI (download via scripts/download-assets.sh)
+.tools/
+
 # Database
 data/
 *.db
@@ -9,7 +12,7 @@ data/
 *.db-wal
 
 # Go
-vendor/
+/vendor/
 
 # OS
 .DS_Store

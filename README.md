@@ -31,16 +31,17 @@ sure nothing falls through the cracks.
 
 ## Tech Stack
 
-| Layer     | Technology                              |
-|-----------|-----------------------------------------|
-| Backend   | Go 1.22+ (`net/http` standard library)  |
-| Frontend  | HTMX 2 + Tailwind CSS (CDN)             |
-| Database  | SQLite (`modernc.org/sqlite`, no CGO)   |
-| Auth      | CERN SSO via OpenID Connect (Keycloak)  |
-| Math/MD   | KaTeX + marked.js (CDN)                 |
-| Email     | Go stdlib `net/smtp`                    |
+| Layer     | Technology                                         |
+|-----------|----------------------------------------------------|
+| Backend   | Go 1.22+ (`net/http` standard library)             |
+| Frontend  | HTMX 2 + Tailwind CSS (self-hosted, compiled)      |
+| Database  | SQLite (`modernc.org/sqlite`, no CGO)              |
+| Auth      | CERN SSO via OpenID Connect (Keycloak)             |
+| Math/MD   | KaTeX + marked.js (self-hosted)                    |
+| Fonts     | Inter (self-hosted woff2 subsets)                  |
+| Email     | Go stdlib `net/smtp`                               |
 
-Single binary, no CGO required.
+Single binary, no CGO required. No external CDN dependencies at runtime.
 
 ---
 
@@ -81,6 +82,18 @@ go run ./cmd/bob
 go build -o bob ./cmd/bob
 ./bob
 ```
+
+### Front-end assets
+
+All JS/CSS dependencies (HTMX, Tailwind CSS, KaTeX, marked, Inter font) are self-hosted under `static/vendor/`. To download them and regenerate the compiled Tailwind CSS:
+
+```bash
+./scripts/download-assets.sh
+```
+
+Run this once after cloning and again whenever you modify templates (Tailwind only includes classes it finds in the templates).
+
+> **TODO:** Replace the Tailwind CLI build step with hand-crafted utility classes in `style.css`, eliminating the build dependency entirely.
 
 The server starts on **http://localhost:5050**. The SQLite database is created automatically at `./data/requests.db` on first run.
 
