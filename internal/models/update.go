@@ -53,6 +53,11 @@ func (us *UpdateStore) Add(requestID, userID int, updateType UpdateType, body st
 		`INSERT INTO request_events (request_id, user_id, type, body) VALUES (?, ?, ?, ?)`,
 		requestID, uid, updateType, body,
 	)
+	if err != nil {
+		return err
+	}
+	// Touch updated_at so the request floats to the top in activity-sorted views.
+	_, err = us.db.Exec(`UPDATE dataset_requests SET updated_at = CURRENT_TIMESTAMP WHERE id = ?`, requestID)
 	return err
 }
 
@@ -81,7 +86,7 @@ func (us *UpdateStore) GetByRequestID(requestID int) ([]*Update, error) {
 		); err != nil {
 			return nil, err
 		}
-		up.CreatedAt, _ = time.Parse("2006-01-02 15:04:05", createdAt)
+		up.CreatedAt = parseTime(createdAt)
 		updates = append(updates, &up)
 	}
 	return updates, rows.Err()

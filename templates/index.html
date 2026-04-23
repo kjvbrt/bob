@@ -2,11 +2,26 @@
 <div class="space-y-6">
 
   <!-- Page heading -->
-  <div class="flex items-center justify-between">
+  <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
     <div>
       <h1 class="text-2xl font-semibold text-stone-900 dark:text-stone-100">Dashboard</h1>
       <p class="text-sm text-stone-500 mt-0.5">FCC dataset request pipeline — analysis &amp; detector design</p>
     </div>
+    {{if .CurrentUser}}
+    <button
+      hx-get="/requests/new"
+      hx-target="#modal-container"
+      hx-swap="innerHTML"
+      onclick="document.getElementById('modal-overlay').classList.remove('hidden')"
+      class="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-indigo-600 dark:bg-indigo-900/80 text-white dark:text-indigo-300 text-sm font-medium
+             hover:bg-indigo-700 dark:hover:bg-indigo-900 active:scale-95 transition-all shadow-sm dark:shadow-none dark:ring-1 dark:ring-indigo-700/60
+             w-full sm:w-auto">
+      <svg class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
+      </svg>
+      New Request
+    </button>
+    {{end}}
   </div>
 
   <!-- Bento stats grid -->

@@ -139,36 +139,68 @@ const selectCols = `
 	COALESCE(dr.physics_approval,''), COALESCE(dr.resources_approval,''),
 	dr.created_at, dr.updated_at`
 
-func (r *RequestStore) GetAll(status, priority, search string) ([]*DatasetRequest, error) {
-	query := `SELECT` + selectCols + `
-		FROM dataset_requests dr
-		LEFT JOIN users au ON au.id = dr.assigned_to
-		WHERE 1=1`
+func requestOrderBy(col, dir string) string {
+	d := "DESC"
+	if strings.ToLower(dir) == "asc" {
+		d = "ASC"
+	}
+	switch col {
+	case "title":
+		return "dr.title " + d
+	case "requester":
+		return "dr.requester_name " + d
+	case "status":
+		return "CASE dr.status WHEN 'in_progress' THEN 0 WHEN 'pending' THEN 1 WHEN 'approved' THEN 2 WHEN 'draft' THEN 3 WHEN 'completed' THEN 4 WHEN 'rejected' THEN 5 ELSE 6 END " + d
+	case "priority":
+		return "CASE dr.priority WHEN 'critical' THEN 0 WHEN 'high' THEN 1 WHEN 'medium' THEN 2 ELSE 3 END " + d
+	case "created":
+		return "dr.created_at " + d
+	case "updated":
+		return "dr.updated_at " + d
+	default:
+		return `dr.updated_at DESC`
+	}
+}
 
+func (r *RequestStore) GetAll(status, priority, search, sortCol, sortDir string, page, perPage int) ([]*DatasetRequest, int, error) {
+	where := "WHERE 1=1"
 	args := []interface{}{}
 
 	if status != "" && status != "all" {
-		query += " AND dr.status = ?"
+		where += " AND dr.status = ?"
 		args = append(args, status)
 	}
 	if priority != "" && priority != "all" {
-		query += " AND dr.priority = ?"
+		where += " AND dr.priority = ?"
 		args = append(args, priority)
 	}
 	if search != "" {
-		query += " AND (dr.title LIKE ? OR dr.description LIKE ? OR dr.requester_name LIKE ? OR dr.department LIKE ?)"
+		where += " AND (dr.title LIKE ? OR dr.description LIKE ? OR dr.requester_name LIKE ? OR dr.department LIKE ?)"
 		s := "%" + search + "%"
 		args = append(args, s, s, s, s)
 	}
 
-	query += ` ORDER BY
-		CASE dr.priority WHEN 'critical' THEN 0 WHEN 'high' THEN 1 WHEN 'medium' THEN 2 ELSE 3 END,
-		CASE dr.status WHEN 'in_progress' THEN 0 WHEN 'pending' THEN 1 WHEN 'approved' THEN 2 ELSE 3 END,
-		dr.updated_at DESC`
+	var total int
+	if err := r.db.QueryRow("SELECT COUNT(*) FROM dataset_requests dr "+where, args...).Scan(&total); err != nil {
+		return nil, 0, fmt.Errorf("count requests: %w", err)
+	}
+
+	if perPage <= 0 {
+		perPage = 20
+	}
+	if page <= 0 {
+		page = 1
+	}
+
+	query := `SELECT` + selectCols + `
+		FROM dataset_requests dr
+		LEFT JOIN users au ON au.id = dr.assigned_to
+		` + where + ` ORDER BY ` + requestOrderBy(sortCol, sortDir) + ` LIMIT ? OFFSET ?`
+	args = append(args, perPage, (page-1)*perPage)
 
 	rows, err := r.db.Query(query, args...)
 	if err != nil {
-		return nil, fmt.Errorf("query requests: %w", err)
+		return nil, 0, fmt.Errorf("query requests: %w", err)
 	}
 	defer rows.Close()
 
@@ -176,11 +208,11 @@ func (r *RequestStore) GetAll(status, priority, search string) ([]*DatasetReques
 	for rows.Next() {
 		req, err := scanRequest(rows)
 		if err != nil {
-			return nil, err
+			return nil, 0, err
 		}
 		requests = append(requests, req)
 	}
-	return requests, rows.Err()
+	return requests, total, rows.Err()
 }
 
 // GetActive returns non-terminal requests (pending, approved, in_progress) sorted by priority then age.
@@ -329,6 +361,23 @@ func (r *RequestStore) GetRecent(limit int) ([]*DatasetRequest, error) {
 	return requests, rows.Err()
 }
 
+var timeFormats = []string{
+	"2006-01-02 15:04:05",
+	"2006-01-02T15:04:05Z",
+	"2006-01-02T15:04:05",
+	"2006-01-02 15:04:05+00:00",
+	"2006-01-02T15:04:05+00:00",
+}
+
+func parseTime(s string) time.Time {
+	for _, f := range timeFormats {
+		if t, err := time.Parse(f, s); err == nil {
+			return t
+		}
+	}
+	return time.Time{}
+}
+
 type scannable interface {
 	Scan(dest ...interface{}) error
 }
@@ -347,7 +396,7 @@ func scanRequest(row scannable) (*DatasetRequest, error) {
 	if err != nil {
 		return nil, err
 	}
-	req.CreatedAt, _ = time.Parse("2006-01-02 15:04:05", createdAt)
-	req.UpdatedAt, _ = time.Parse("2006-01-02 15:04:05", updatedAt)
+	req.CreatedAt = parseTime(createdAt)
+	req.UpdatedAt = parseTime(updatedAt)
 	return &req, nil
 }

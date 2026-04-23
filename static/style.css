@@ -278,6 +278,12 @@ select.dark .form-input option { background: #292524; }
   color: #a8a29e;
   transition: color 0.15s;
 }
+.theme-btn-fill {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
 .theme-btn:hover { color: #78716c; }
 .dark .theme-btn:hover { color: #d6d3d1; }
 .theme-btn[data-active] {

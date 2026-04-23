@@ -53,21 +53,6 @@
             <span class="text-xs font-medium text-indigo-500 tracking-wide leading-tight">FCC Dataset Requests</span>
           </div>
         </a>
-        {{if .CurrentUser}}
-        <div class="hidden md:block w-px h-6 bg-stone-200 dark:bg-stone-700 mx-1"></div>
-        <button
-          hx-get="/requests/new"
-          hx-target="#modal-container"
-          hx-swap="innerHTML"
-          onclick="document.getElementById('modal-overlay').classList.remove('hidden')"
-          class="hidden md:flex items-center gap-2 px-4 py-2 rounded-xl bg-indigo-600 dark:bg-indigo-900/80 text-white dark:text-indigo-300 text-sm font-medium
-                 hover:bg-indigo-700 dark:hover:bg-indigo-900 active:scale-95 transition-all shadow-sm dark:shadow-none dark:ring-1 dark:ring-indigo-700/60">
-          <svg class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
-          </svg>
-          New Request
-        </button>
-        {{end}}
       </div>
 
       <!-- Desktop nav -->
@@ -87,19 +72,6 @@
       <!-- Right side controls -->
       <div class="flex items-center gap-2 justify-end">
         {{if .CurrentUser}}
-        <!-- New Request (mobile icon only) -->
-        <button
-          hx-get="/requests/new"
-          hx-target="#modal-container"
-          hx-swap="innerHTML"
-          onclick="document.getElementById('modal-overlay').classList.remove('hidden')"
-          class="md:hidden flex items-center justify-center w-9 h-9 rounded-xl bg-indigo-600 dark:bg-indigo-900/80 text-white dark:text-indigo-300
-                 hover:bg-indigo-700 dark:hover:bg-indigo-900 active:scale-95 transition-all shadow-sm dark:shadow-none dark:ring-1 dark:ring-indigo-700/60">
-          <svg class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
-          </svg>
-        </button>
-
         <!-- Desktop: user pill (hidden on mobile) -->
         <div class="hidden md:flex items-center gap-2">
           <!-- Theme toggle -->
@@ -192,46 +164,45 @@
                 {{if eq .Title "All Requests"}}bg-indigo-50 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300{{else}}text-stone-600 dark:text-stone-400 hover:bg-stone-100 dark:hover:bg-stone-800{{end}}">
         Requests
       </a>
-      <!-- Divider: user info -->
-      <div class="pt-2 mt-2 border-t border-stone-100 dark:border-stone-800 flex items-center gap-2">
-        <div class="w-7 h-7 rounded-full bg-indigo-100 dark:bg-indigo-900/50 flex items-center justify-center shrink-0">
-          <span class="text-indigo-700 dark:text-indigo-300 font-semibold text-xs">{{initial .CurrentUser.DisplayName}}</span>
-        </div>
-        <div class="leading-tight">
-          <p class="text-xs font-medium text-stone-800 dark:text-stone-200">{{.CurrentUser.Username}}</p>
-          <p class="text-[10px] text-stone-400 capitalize">{{.CurrentUser.Role}}</p>
-        </div>
-      </div>
       <!-- Theme toggle row -->
-      <div class="flex items-center gap-2 px-1 pt-1">
-        <span class="text-xs text-stone-400 mr-1">Theme</span>
-        <div class="flex items-center gap-0.5 p-0.5 rounded-xl bg-stone-100 dark:bg-stone-800">
-          <button class="theme-btn" data-theme="light" onclick="setTheme('light')" title="Light mode">
+      <div class="pt-2 mt-2 border-t border-stone-100 dark:border-stone-800 flex items-center gap-2 px-1">
+        <span class="text-xs text-stone-400 shrink-0">Theme</span>
+        <div class="flex items-center gap-0.5 p-0.5 rounded-xl bg-stone-100 dark:bg-stone-800 flex-1">
+          <button class="theme-btn theme-btn-fill" data-theme="light" onclick="setTheme('light')" title="Light mode">
             <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.75">
               <path stroke-linecap="round" stroke-linejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364-6.364l-.707.707M6.343 17.657l-.707.707M17.657 17.657l-.707-.707M6.343 6.343l-.707-.707M12 8a4 4 0 100 8 4 4 0 000-8z"/>
             </svg>
           </button>
-          <button class="theme-btn" data-theme="system" onclick="setTheme('system')" title="System preference">
+          <button class="theme-btn theme-btn-fill" data-theme="system" onclick="setTheme('system')" title="System preference">
             <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.75">
               <path stroke-linecap="round" stroke-linejoin="round" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
             </svg>
           </button>
-          <button class="theme-btn" data-theme="dark" onclick="setTheme('dark')" title="Dark mode">
+          <button class="theme-btn theme-btn-fill" data-theme="dark" onclick="setTheme('dark')" title="Dark mode">
             <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.75">
               <path stroke-linecap="round" stroke-linejoin="round" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/>
             </svg>
           </button>
         </div>
       </div>
-      <!-- Logout row -->
-      <div class="pt-1">
+      <!-- Separator -->
+      <div class="border-t border-stone-100 dark:border-stone-800 mt-2"></div>
+      <!-- User info + logout -->
+      <div class="flex items-center gap-2">
+        <div class="w-7 h-7 rounded-full bg-indigo-100 dark:bg-indigo-900/50 flex items-center justify-center shrink-0">
+          <span class="text-indigo-700 dark:text-indigo-300 font-semibold text-xs">{{initial .CurrentUser.DisplayName}}</span>
+        </div>
+        <div class="leading-tight flex-1 min-w-0">
+          <p class="text-xs font-medium text-stone-800 dark:text-stone-200 truncate">{{.CurrentUser.Username}}</p>
+          <p class="text-[10px] text-stone-400 capitalize">{{.CurrentUser.Role}}</p>
+        </div>
         <a href="/logout"
-           class="flex items-center gap-2 w-full px-4 py-2.5 rounded-xl text-sm font-medium text-stone-600 dark:text-stone-400 hover:bg-stone-100 dark:hover:bg-stone-800 transition-colors">
-          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+           class="p-2 rounded-xl text-stone-400 hover:text-stone-600 dark:hover:text-stone-300 hover:bg-stone-100 dark:hover:bg-stone-800 transition-colors shrink-0"
+           title="Logout">
+          <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.75">
             <path stroke-linecap="round" stroke-linejoin="round"
                   d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15M12 9l-3 3m0 0l3 3m-3-3h12.75"/>
           </svg>
-          Logout
         </a>
       </div>
     </div>

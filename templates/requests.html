@@ -2,16 +2,16 @@
 <div class="space-y-6">
 
   <!-- Header -->
-  <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+  <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
     <div>
       <h1 class="text-2xl font-semibold text-stone-900 dark:text-stone-100">Requests</h1>
       <p class="text-sm text-stone-500 mt-0.5">
-        {{if .Stats}}{{.Stats.Total}} total — FCC analysis &amp; detector design datasets{{end}}
+        {{if .Stats}}{{.Stats.Total}} total — FCC analysis &amp; detector<br class="hidden md:block lg:hidden">design datasets{{end}}
       </p>
     </div>
 
     <!-- Filters -->
-    <div class="flex flex-wrap items-center gap-2 w-full sm:w-auto">
+    <div class="flex flex-wrap items-center gap-2 w-full md:w-auto">
       <input
         type="text"
         name="search"
@@ -22,7 +22,7 @@
         hx-target="#request-list-area"
         hx-include="#filter-status,#filter-priority"
         class="px-3 py-2 rounded-xl border border-stone-200 dark:border-stone-700 bg-white dark:bg-stone-800 text-sm text-stone-700 dark:text-stone-200
-               placeholder:text-stone-400 dark:placeholder:text-stone-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 w-full sm:w-48"/>
+               placeholder:text-stone-400 dark:placeholder:text-stone-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 w-full md:w-48"/>
 
       <select id="filter-status" name="status"
         hx-get="/requests"
@@ -30,7 +30,7 @@
         hx-target="#request-list-area"
         hx-include="[name='search'],#filter-priority"
         class="px-3 py-2 rounded-xl border border-stone-200 dark:border-stone-700 bg-white dark:bg-stone-800 text-sm text-stone-700 dark:text-stone-200
-               focus:outline-none focus:ring-2 focus:ring-indigo-500 flex-1 sm:flex-none">
+               focus:outline-none focus:ring-2 focus:ring-indigo-500 flex-1 md:flex-none">
         <option value="all" {{if eq .Filter.Status ""}}selected{{end}}>All statuses</option>
         <option value="draft"       {{if eq .Filter.Status "draft"}}selected{{end}}>Draft</option>
         <option value="pending"     {{if eq .Filter.Status "pending"}}selected{{end}}>Under Review</option>
@@ -47,7 +47,7 @@
         hx-target="#request-list-area"
         hx-include="[name='search'],#filter-status"
         class="px-3 py-2 rounded-xl border border-stone-200 dark:border-stone-700 bg-white dark:bg-stone-800 text-sm text-stone-700 dark:text-stone-200
-               focus:outline-none focus:ring-2 focus:ring-indigo-500 flex-1 sm:flex-none">
+               focus:outline-none focus:ring-2 focus:ring-indigo-500 flex-1 md:flex-none">
         <option value="all"      {{if eq .Filter.Priority ""}}selected{{end}}>All priorities</option>
         <option value="critical" {{if eq .Filter.Priority "critical"}}selected{{end}}>Critical</option>
         <option value="high"     {{if eq .Filter.Priority "high"}}selected{{end}}>High</option>
@@ -64,6 +64,23 @@
   <div id="request-list-area">
     {{template "request_list" .}}
   </div>
+
+  {{if .CurrentUser}}
+  <div class="flex justify-center">
+    <button
+      hx-get="/requests/new"
+      hx-target="#modal-container"
+      hx-swap="innerHTML"
+      onclick="document.getElementById('modal-overlay').classList.remove('hidden')"
+      class="flex items-center gap-2 px-4 py-2 rounded-xl bg-indigo-600 dark:bg-indigo-900/80 text-white dark:text-indigo-300 text-sm font-medium
+             hover:bg-indigo-700 dark:hover:bg-indigo-900 active:scale-95 transition-all shadow-sm dark:shadow-none dark:ring-1 dark:ring-indigo-700/60">
+      <svg class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
+      </svg>
+      New Request
+    </button>
+  </div>
+  {{end}}
 
 </div>
 {{end}}

@@ -51,6 +51,29 @@ func New(db *sql.DB, oidcClient *auth.Client, devMode bool) *Handler {
 			}
 			return string(runes[0])
 		},
+		"nextSortDir": func(col, currentSort, currentDir string) string {
+			if col != currentSort {
+				switch col {
+				case "priority", "created", "updated":
+					return "desc"
+				default:
+					return "asc"
+				}
+			}
+			if currentDir == "asc" {
+				return "desc"
+			}
+			return "asc"
+		},
+		"sortIcon": func(col, currentSort, currentDir string) template.HTML {
+			if col != currentSort {
+				return template.HTML(`<svg class="w-3 h-3 text-stone-300 dark:text-stone-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 9l4-4 4 4m0 6l-4 4-4-4"/></svg>`)
+			}
+			if currentDir == "asc" {
+				return template.HTML(`<svg class="w-3 h-3 text-indigo-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 15.75l7.5-7.5 7.5 7.5"/></svg>`)
+			}
+			return template.HTML(`<svg class="w-3 h-3 text-indigo-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5"/></svg>`)
+		},
 	}
 	return h
 }
@@ -192,6 +215,7 @@ type PageData struct {
 	Stats       *models.Stats
 	Recent      []*models.DatasetRequest
 	Filter      FilterState
+	Pagination  *Pagination
 	CurrentUser *models.User
 	Error       string
 	DevMode     bool
@@ -204,6 +228,23 @@ type FilterState struct {
 	Status   string
 	Priority string
 	Search   string
+	Sort     string
+	SortDir  string
+	Page     int
+	PerPage  int
+}
+
+type Pagination struct {
+	Page       int
+	PerPage    int
+	Total      int
+	TotalPages int
+	HasPrev    bool
+	HasNext    bool
+	PrevPage   int
+	NextPage   int
+	From       int
+	To         int
 }
 
 // canEdit returns true when the current user may edit the given request.
@@ -258,29 +299,73 @@ func (h *Handler) Dashboard(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) ListRequests(w http.ResponseWriter, r *http.Request) {
-	status := r.URL.Query().Get("status")
-	priority := r.URL.Query().Get("priority")
-	search := r.URL.Query().Get("search")
+	q := r.URL.Query()
+	status := q.Get("status")
+	priority := q.Get("priority")
+	search := q.Get("search")
+	sort := q.Get("sort")
+	sortDir := q.Get("dir")
 
-	requests, err := h.requests.GetAll(status, priority, search)
+	validSorts := map[string]bool{"title": true, "requester": true, "status": true, "priority": true, "created": true, "updated": true}
+	if !validSorts[sort] {
+		sort = ""
+	}
+	if sortDir != "asc" && sortDir != "desc" {
+		sortDir = "desc"
+	}
+
+	page, _ := strconv.Atoi(q.Get("page"))
+	perPage, _ := strconv.Atoi(q.Get("per_page"))
+	if page <= 0 {
+		page = 1
+	}
+	if perPage != 10 && perPage != 20 && perPage != 50 {
+		perPage = 20
+	}
+
+	requests, total, err := h.requests.GetAll(status, priority, search, sort, sortDir, page, perPage)
 	if err != nil {
 		slog.Error("list requests", "error", err)
 		http.Error(w, "Internal Server Error", 500)
 		return
 	}
-	filter := FilterState{Status: status, Priority: priority, Search: search}
+
+	totalPages := (total + perPage - 1) / perPage
+	if totalPages < 1 {
+		totalPages = 1
+	}
+	if page > totalPages {
+		page = totalPages
+	}
+	from := (page-1)*perPage + 1
+	to := page * perPage
+	if to > total {
+		to = total
+	}
+	if total == 0 {
+		from = 0
+	}
+	pagination := &Pagination{
+		Page: page, PerPage: perPage, Total: total, TotalPages: totalPages,
+		HasPrev: page > 1, HasNext: page < totalPages,
+		PrevPage: page - 1, NextPage: page + 1,
+		From: from, To: to,
+	}
+
+	filter := FilterState{Status: status, Priority: priority, Search: search, Sort: sort, SortDir: sortDir, Page: page, PerPage: perPage}
 
 	if r.Header.Get("HX-Request") == "true" {
-		h.renderPartial(w, r, "request_list", PageData{Requests: requests, Filter: filter})
+		h.renderPartial(w, r, "request_list", PageData{Requests: requests, Filter: filter, Pagination: pagination})
 		return
 	}
 
 	stats, _ := h.requests.GetStats()
 	h.renderPage(w, r, "requests", PageData{
-		Title:    "All Requests",
-		Requests: requests,
-		Stats:    stats,
-		Filter:   filter,
+		Title:      "All Requests",
+		Requests:   requests,
+		Stats:      stats,
+		Filter:     filter,
+		Pagination: pagination,
 	})
 }
 
