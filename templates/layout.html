@@ -228,10 +228,29 @@
     </div>
   </footer>
 
+  <!-- Confirmation modal -->
+  <div id="confirm-overlay" class="hidden fixed inset-0 z-[60] flex items-center justify-center p-4">
+    <div class="absolute inset-0 bg-black/40 backdrop-blur-sm" onclick="closeConfirm()"></div>
+    <div class="relative bg-white dark:bg-stone-900 rounded-2xl shadow-2xl z-10 w-full max-w-sm p-6">
+      <p id="confirm-message" class="text-sm text-stone-700 dark:text-stone-300 mb-6 leading-relaxed"></p>
+      <div class="flex items-center justify-end gap-3">
+        <button onclick="closeConfirm()"
+                class="px-4 py-2 rounded-xl border border-stone-200 dark:border-stone-700 text-stone-600 dark:text-stone-300 text-sm font-medium hover:bg-stone-50 dark:hover:bg-stone-800 transition-colors">
+          Cancel
+        </button>
+        <button id="confirm-ok"
+                class="px-4 py-2 rounded-xl bg-indigo-600 text-white text-sm font-medium hover:bg-indigo-700 active:scale-95 transition-all">
+          Confirm
+        </button>
+      </div>
+    </div>
+  </div>
+
   <!-- Modal overlay -->
   <div id="modal-overlay" class="hidden fixed inset-0 z-50 flex items-end sm:items-center justify-center sm:p-4">
     <div class="absolute inset-0 bg-black/40 backdrop-blur-sm" onclick="closeModal()"></div>
     <div id="modal-container"
+         data-request-detail-root
          class="relative w-full sm:max-w-2xl max-h-[92vh] sm:max-h-[90vh] overflow-y-auto bg-white dark:bg-stone-900 rounded-t-3xl sm:rounded-3xl shadow-2xl z-10">
     </div>
   </div>
@@ -301,6 +320,44 @@
     });
 
     document.addEventListener('DOMContentLoaded', function() { updateThemeButtons(getTheme()); });
+
+    // ── Confirmation modal ─────────────────────────────────────────────────
+    function showConfirm(message, onConfirm) {
+      document.getElementById('confirm-message').textContent = message;
+      var ok = document.getElementById('confirm-ok');
+      ok.onclick = function() { closeConfirm(); onConfirm(); };
+      document.getElementById('confirm-overlay').classList.remove('hidden');
+    }
+
+    function closeConfirm() {
+      document.getElementById('confirm-overlay').classList.add('hidden');
+    }
+
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape') closeConfirm();
+    });
+
+    function confirmStatusApproval(sel) {
+      var prev = sel.dataset.prev;
+      if (sel.value === 'approved') {
+        var physics = sel.dataset.physicsApproval;
+        var resources = sel.dataset.resourcesApproval;
+        if (physics !== 'approved' || resources !== 'approved') {
+          showConfirm('Not all approval tracks are granted yet. Set status to Approved anyway?', function() {
+            sel.dataset.prev = sel.value;
+            htmx.trigger(sel, 'status-confirmed');
+          });
+          sel.value = prev;
+          return;
+        }
+      }
+      sel.dataset.prev = sel.value;
+      htmx.trigger(sel, 'status-confirmed');
+    }
+
+    function confirmAction(btn, message, event) {
+      showConfirm(message, function() { htmx.trigger(btn, event || 'action-confirmed'); });
+    }
 
     // ── Batch selection ────────────────────────────────────────────────────
     function updateBatchToolbar() {

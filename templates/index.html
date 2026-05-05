@@ -42,11 +42,7 @@
 
     <div class="bento-grid">
       {{range .Recent}}
-      <div class="bento-card group cursor-pointer"
-           hx-get="/requests/{{.ID}}"
-           hx-target="#modal-container"
-           hx-swap="innerHTML"
-           onclick="document.getElementById('modal-overlay').classList.remove('hidden')">
+      <a href="/requests/{{.ID}}" class="bento-card group cursor-pointer block">
 
         <div class="flex items-start justify-between mb-3">
           <span class="status-badge {{statusClass .Status}}">{{.StatusLabel}}</span>
@@ -60,7 +56,7 @@
         <div class="prose-md text-xs text-stone-500 dark:text-stone-400 leading-relaxed mb-3" data-md>{{truncate .Description 100}}</div>
         {{end}}
 
-        {{if or (eq .Status "pending") (ne .PhysicsApproval "") (ne .ResourcesApproval "")}}
+        {{if or (eq .Status "pending") (eq .Status "in_progress") (eq .Status "approved") (ne .PhysicsApproval "") (ne .ResourcesApproval "")}}
         <div class="flex items-center gap-3 mb-3">
           <!-- Physics approval -->
           <div class="flex items-center gap-1">
@@ -114,7 +110,7 @@
           {{range .TagList}}<span class="tag">{{.}}</span>{{end}}
         </div>
         {{end}}
-      </div>
+      </a>
       {{end}}
     </div>
   </div>

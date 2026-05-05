@@ -143,31 +143,15 @@
       </div>
     </div>
 
-    <!-- Status (edit only) + Priority -->
-    <div class="{{if .Request}}grid grid-cols-1 sm:grid-cols-2 gap-4{{end}}">
-      {{if .Request}}
-      <div>
-        <label class="form-label">Status</label>
-        <select name="status" class="form-input">
-          <option value="draft"       {{if eq .Request.Status "draft"}}selected{{end}}>Draft</option>
-          <option value="pending"     {{if eq .Request.Status "pending"}}selected{{end}}>Under Review</option>
-          <option value="approved"    {{if eq .Request.Status "approved"}}selected{{end}}>Approved</option>
-          <option value="in_progress" {{if eq .Request.Status "in_progress"}}selected{{end}}>In Progress</option>
-          <option value="completed"   {{if eq .Request.Status "completed"}}selected{{end}}>Completed</option>
-          <option value="rejected"    {{if eq .Request.Status "rejected"}}selected{{end}}>Rejected</option>
-          <option value="cancelled"   {{if eq .Request.Status "cancelled"}}selected{{end}}>Cancelled</option>
-        </select>
-      </div>
-      {{end}}
-      <div>
-        <label class="form-label">Priority</label>
-        <select name="priority" class="form-input">
-          <option value="low"      {{if .Request}}{{if eq .Request.Priority "low"}}selected{{end}}{{end}}>Low</option>
-          <option value="medium"   {{if .Request}}{{if eq .Request.Priority "medium"}}selected{{end}}{{else}}selected{{end}}>Medium</option>
-          <option value="high"     {{if .Request}}{{if eq .Request.Priority "high"}}selected{{end}}{{end}}>High</option>
-          <option value="critical" {{if .Request}}{{if eq .Request.Priority "critical"}}selected{{end}}{{end}}>Critical</option>
-        </select>
-      </div>
+    <!-- Priority -->
+    <div>
+      <label class="form-label">Priority</label>
+      <select name="priority" class="form-input">
+        <option value="low"      {{if .Request}}{{if eq .Request.Priority "low"}}selected{{end}}{{end}}>Low</option>
+        <option value="medium"   {{if .Request}}{{if eq .Request.Priority "medium"}}selected{{end}}{{else}}selected{{end}}>Medium</option>
+        <option value="high"     {{if .Request}}{{if eq .Request.Priority "high"}}selected{{end}}{{end}}>High</option>
+        <option value="critical" {{if .Request}}{{if eq .Request.Priority "critical"}}selected{{end}}{{end}}>Critical</option>
+      </select>
     </div>
 
     <!-- Est. size + Due date -->

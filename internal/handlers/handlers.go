@@ -535,7 +535,7 @@ func (h *Handler) UpdateRequest(w http.ResponseWriter, r *http.Request) {
 		Department:        strings.TrimSpace(r.FormValue("department")),
 		DatasetType:       r.FormValue("dataset_type"),
 		UseCase:           r.FormValue("use_case"),
-		Status:            models.Status(r.FormValue("status")),
+		Status:            existing.Status,
 		Priority:          models.Priority(r.FormValue("priority")),
 		EstimatedSize:     strings.TrimSpace(r.FormValue("estimated_size")),
 		Format:            strings.TrimSpace(r.FormValue("format")),
@@ -571,18 +571,26 @@ func (h *Handler) UpdateStatus(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	user := middleware.GetUser(r)
 	status := models.Status(r.FormValue("status"))
+
+	if !user.IsManager() {
+		if existing.CreatedBy != user.ID {
+			http.Error(w, "Forbidden", http.StatusForbidden)
+			return
+		}
+		if status != models.StatusDraft && status != models.StatusCancelled {
+			http.Error(w, "Forbidden", http.StatusForbidden)
+			return
+		}
+	}
+
 	if err := h.requests.UpdateStatus(id, status); err != nil {
 		slog.Error("update status", "error", err)
 		http.Error(w, "Internal Server Error", 500)
 		return
 	}
-	// Reset approval tracks when a request re-enters review.
-	if status == models.StatusPending {
-		h.requests.ResetApprovals(id)
-	}
 
-	user := middleware.GetUser(r)
 	userID := 0
 	userName := ""
 	if user != nil {
@@ -601,7 +609,20 @@ func (h *Handler) UpdateStatus(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Internal Server Error", 500)
 		return
 	}
-	h.renderPartial(w, r, "status_badge", PageData{Request: req})
+
+	htmxTarget := r.Header.Get("HX-Target")
+	if strings.HasPrefix(htmxTarget, "status-cell-") {
+		h.renderPartial(w, r, "status_badge", PageData{Request: req})
+		return
+	}
+	updates, _ := h.updates.GetByRequestID(id)
+	managers, _ := h.users.GetManagers()
+	h.renderPartial(w, r, "request_detail", PageData{
+		Request:  req,
+		Updates:  updates,
+		Managers: managers,
+		IsPage:   htmxTarget != "modal-container",
+	})
 }
 
 func (h *Handler) DeleteRequest(w http.ResponseWriter, r *http.Request) {
@@ -696,8 +717,8 @@ func (h *Handler) ApprovalDecision(w http.ResponseWriter, r *http.Request) {
 			h.updates.Add(id, userID, models.UpdateStatusChanged, "under review → rejected ("+trackLabel+" approval denied)")
 			h.sendStatusEmail(existing, models.StatusRejected)
 		}
-	} else if decision == "revert" && (req.Status == models.StatusApproved || req.Status == models.StatusRejected) {
-		// Revert overall status back to under review.
+	} else if decision == "revert" && (req.Status == models.StatusApproved || req.Status == models.StatusRejected || req.Status == models.StatusCompleted || req.Status == models.StatusInProgress) {
+		// Revert overall status back to under review when an approval is revoked.
 		if err := h.requests.UpdateStatus(id, models.StatusPending); err == nil {
 			h.updates.Add(id, userID, models.UpdateStatusChanged, string(req.Status)+" → under review ("+trackLabel+" approval reverted)")
 		}

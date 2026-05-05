@@ -136,7 +136,20 @@ func (h *Handler) UpdatePriority(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Internal Server Error", 500)
 		return
 	}
-	h.renderPartial(w, r, "priority_cell", PageData{Request: req})
+
+	htmxTarget := r.Header.Get("HX-Target")
+	if strings.HasPrefix(htmxTarget, "priority-cell-") {
+		h.renderPartial(w, r, "priority_cell", PageData{Request: req})
+		return
+	}
+	updates, _ := h.updates.GetByRequestID(id)
+	managers, _ := h.users.GetManagers()
+	h.renderPartial(w, r, "request_detail", PageData{
+		Request:  req,
+		Updates:  updates,
+		Managers: managers,
+		IsPage:   htmxTarget != "modal-container",
+	})
 }
 
 func (h *Handler) BatchAction(w http.ResponseWriter, r *http.Request) {

@@ -181,19 +181,9 @@
         </td>
         {{end}}
         <td class="px-5 py-4">
-          {{if eq $.Title "Dashboard"}}
-          <a href="/requests/{{.ID}}"
-             hx-get="/requests/{{.ID}}"
-             hx-target="#modal-container"
-             hx-swap="innerHTML"
-             onclick="document.getElementById('modal-overlay').classList.remove('hidden')"
-             class="font-medium text-stone-900 dark:text-stone-100 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors block"
-             data-md-inline>{{truncate .Title 50}}</a>
-          {{else}}
           <a href="/requests/{{.ID}}"
              class="font-medium text-stone-900 dark:text-stone-100 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors block"
              data-md-inline>{{truncate .Title 50}}</a>
-          {{end}}
           {{if .Description}}
           <div class="prose-md text-xs text-stone-400 mt-0.5" data-md>{{truncate .Description 70}}</div>
           {{end}}

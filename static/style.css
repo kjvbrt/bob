@@ -67,7 +67,7 @@ body { font-family: 'Inter', ui-sans-serif, system-ui, sans-serif; }
 /* Inline status select */
 .status-select {
   appearance: none;
-  padding: 0.2rem 0.65rem;
+  padding: 0.2rem 1.6rem 0.2rem 0.65rem;
   border-radius: 9999px;
   font-size: 0.7rem;
   font-weight: 600;
@@ -75,18 +75,23 @@ body { font-family: 'Inter', ui-sans-serif, system-ui, sans-serif; }
   text-transform: uppercase;
   border: none;
   cursor: pointer;
+  min-width: 8rem;
   outline: none;
   transition: opacity 0.15s;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 16 16'%3E%3Cpath fill='none' stroke='%23555' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.4rem center;
+  background-size: 0.6em;
 }
 
 .status-select:hover { opacity: 0.85; }
-.status-select.status-draft      { background: #f4f4f5; color: #71717a; }
-.status-select.status-pending    { background: #fef3c7; color: #d97706; }
-.status-select.status-approved   { background: #dbeafe; color: #2563eb; }
-.status-select.status-rejected   { background: #fee2e2; color: #dc2626; }
-.status-select.status-inprogress { background: #ede9fe; color: #7c3aed; }
-.status-select.status-completed  { background: #d1fae5; color: #059669; }
-.status-select.status-cancelled  { background: #f4f4f5; color: #71717a; }
+.status-select.status-draft      { background-color: #f4f4f5; color: #71717a; }
+.status-select.status-pending    { background-color: #fef3c7; color: #d97706; }
+.status-select.status-approved   { background-color: #dbeafe; color: #2563eb; }
+.status-select.status-rejected   { background-color: #fee2e2; color: #dc2626; }
+.status-select.status-inprogress { background-color: #ede9fe; color: #7c3aed; }
+.status-select.status-completed  { background-color: #d1fae5; color: #059669; }
+.status-select.status-cancelled  { background-color: #f4f4f5; color: #71717a; }
 
 /* ── Priority pips ───────────────────────────────────────────────────────── */
 .priority-pip {
@@ -166,10 +171,39 @@ select.form-input { cursor: pointer; }
 .prose-md em         { font-style: italic; }
 .prose-md a          { color: #4f46e5; text-decoration: underline; }
 
+/* ── Assignment select ───────────────────────────────────────────────────── */
+.assign-select {
+  appearance: none;
+  width: 100%;
+  padding: 0.4rem 2rem 0.4rem 0.75rem;
+  border: 1.5px solid #e7e5e4;
+  border-radius: 0.65rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #1c1917;
+  background-color: white;
+  cursor: pointer;
+  outline: none;
+  transition: border-color 0.15s;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 16 16'%3E%3Cpath fill='none' stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.6rem center;
+  background-size: 0.7em;
+}
+.assign-select:hover  { border-color: #d6d3d1; }
+.assign-select:focus  { border-color: #6366f1; box-shadow: 0 0 0 3px rgba(99,102,241,.15); }
+.dark .assign-select  {
+  background-color: #1c1917;
+  border-color: #44403c;
+  color: #e7e5e4;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 16 16'%3E%3Cpath fill='none' stroke='%239ca3af' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/%3E%3C/svg%3E");
+}
+.dark .assign-select:hover { border-color: #57534e; }
+
 /* ── Inline priority select ──────────────────────────────────────────────── */
 .priority-select {
   appearance: none;
-  padding: 0.15rem 0.5rem;
+  padding: 0.15rem 1.4rem 0.15rem 0.5rem;
   border-radius: 0.4rem;
   font-size: 0.75rem;
   font-weight: 500;
@@ -177,15 +211,20 @@ select.form-input { cursor: pointer; }
   cursor: pointer;
   outline: none;
   transition: opacity 0.15s;
-  background: #f1f5f9;
+  background-color: #f1f5f9;
   color: #475569;
+  min-width: 5rem;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 16 16'%3E%3Cpath fill='none' stroke='%23555' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.4rem center;
+  background-size: 0.6em;
 }
 
 .priority-select:hover { opacity: 0.8; }
-.priority-select.priority-low      { background: #f1f5f9; color: #475569; }
-.priority-select.priority-medium   { background: #dbeafe; color: #2563eb; }
-.priority-select.priority-high     { background: #ffedd5; color: #c2410c; }
-.priority-select.priority-critical { background: #fee2e2; color: #dc2626; }
+.priority-select.priority-low      { background-color: #f1f5f9; color: #475569; }
+.priority-select.priority-medium   { background-color: #dbeafe; color: #2563eb; }
+.priority-select.priority-high     { background-color: #ffedd5; color: #c2410c; }
+.priority-select.priority-critical { background-color: #fee2e2; color: #dc2626; }
 
 /* ── Event timeline ──────────────────────────────────────────────────────── */
 .event-comment  { background: #fafaf9; border: 1px solid #e7e5e4; }
@@ -235,10 +274,10 @@ select.form-input { cursor: pointer; }
 .dark .status-cancelled,  .dark .status-select.status-cancelled  { background: #3f3f46; color: #a1a1aa; }
 
 /* ── Priority select dark variants ──────────────────────────────────────── */
-.dark .priority-select.priority-low      { background: #292524; color: #a8a29e; }
-.dark .priority-select.priority-medium   { background: #1e3a5f; color: #60a5fa; }
-.dark .priority-select.priority-high     { background: #431407; color: #fb923c; }
-.dark .priority-select.priority-critical { background: #450a0a; color: #f87171; }
+.dark .priority-select.priority-low      { background-color: #292524; color: #a8a29e; }
+.dark .priority-select.priority-medium   { background-color: #1e3a5f; color: #60a5fa; }
+.dark .priority-select.priority-high     { background-color: #431407; color: #fb923c; }
+.dark .priority-select.priority-critical { background-color: #450a0a; color: #f87171; }
 
 /* ── Dark mode variants ──────────────────────────────────────────────────── */
 .dark .bento-card {
