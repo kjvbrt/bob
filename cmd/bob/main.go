@@ -92,6 +92,7 @@ func main() {
 	mux.HandleFunc("GET /requests/{id}/edit", middleware.RequireAuth(h.EditRequestForm))
 	mux.HandleFunc("POST /requests/{id}", middleware.RequireAuth(h.UpdateRequest))
 	mux.HandleFunc("GET /api/stats", middleware.RequireAuth(h.GetStats))
+	mux.HandleFunc("GET /api/recent", middleware.RequireAuth(h.GetRecent))
 
 	// Manager-only routes
 	mux.HandleFunc("GET /manager", middleware.RequireManager(h.ManagerView))
@@ -103,7 +104,7 @@ func main() {
 	mux.HandleFunc("POST /requests/{id}/comments", middleware.RequireAuth(h.AddComment))
 	mux.HandleFunc("DELETE /requests/{id}", middleware.RequireManager(h.DeleteRequest))
 
-	addr := ":5050"
+	addr := ":8000"
 	slog.Info("server started", "addr", "http://localhost"+addr)
 	if err := http.ListenAndServe(addr, authMW(mux)); err != nil {
 		log.Fatal(err)

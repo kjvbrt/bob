@@ -21,8 +21,7 @@
   <!-- KaTeX -->
   <link rel="stylesheet" href="/static/vendor/katex/katex.min.css">
   <script defer src="/static/vendor/katex/katex.min.js"></script>
-  <script defer src="/static/vendor/katex/auto-render.min.js"
-          onload="initMathRender()"></script>
+  <script defer src="/static/vendor/katex/auto-render.min.js"></script>
   <!-- marked -->
   <script src="/static/vendor/marked.min.js"></script>
 </head>
@@ -292,7 +291,7 @@
       });
     }
 
-    function initMathRender() { renderMd(document); }
+    document.addEventListener('DOMContentLoaded', function() { renderMd(document); });
 
     // ── Theme ──────────────────────────────────────────────────────────────
     function getTheme() { return localStorage.getItem('theme') || 'system'; }

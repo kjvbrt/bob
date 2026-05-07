@@ -66,14 +66,9 @@
         <select name="use_case" required class="form-input">
           {{$uc := ""}}{{if .Request}}{{$uc = .Request.UseCase}}{{end}}
           <option value="" {{if eq $uc ""}}selected{{end}} disabled>— Select use case —</option>
-          <option value="physics_analysis"    {{if eq $uc "physics_analysis"}}selected{{end}}>Physics Analysis</option>
-          <option value="reconstruction_dev"  {{if eq $uc "reconstruction_dev"}}selected{{end}}>Reconstruction Development</option>
-          <option value="detector_simulation" {{if eq $uc "detector_simulation"}}selected{{end}}>Detector Simulation</option>
-          <option value="ml_training"         {{if eq $uc "ml_training"}}selected{{end}}>ML Training</option>
-          <option value="ml_evaluation"       {{if eq $uc "ml_evaluation"}}selected{{end}}>ML Evaluation</option>
-          <option value="benchmarking"        {{if eq $uc "benchmarking"}}selected{{end}}>Benchmarking</option>
-          <option value="calibration"         {{if eq $uc "calibration"}}selected{{end}}>Calibration</option>
-          <option value="other"               {{if eq $uc "other"}}selected{{end}}>Other</option>
+          {{range useCaseLabels}}
+          <option value="{{.Value}}" {{if eq $uc .Value}}selected{{end}}>{{.Label}}</option>
+          {{end}}
         </select>
       </div>
       <div>
@@ -81,10 +76,9 @@
         <select name="dataset_type" required class="form-input">
           {{$dt := ""}}{{if .Request}}{{$dt = .Request.DatasetType}}{{end}}
           <option value="" {{if eq $dt ""}}selected{{end}} disabled>— Select stage —</option>
-          <option value="generation"     {{if eq $dt "generation"}}selected{{end}}>Generation</option>
-          <option value="simulation"     {{if eq $dt "simulation"}}selected{{end}}>Simulation</option>
-          <option value="reconstruction" {{if eq $dt "reconstruction"}}selected{{end}}>Reconstruction</option>
-          <option value="other"          {{if eq $dt "other"}}selected{{end}}>Other</option>
+          {{range datasetTypeLabels}}
+          <option value="{{.Value}}" {{if eq $dt .Value}}selected{{end}}>{{.Label}}</option>
+          {{end}}
         </select>
       </div>
     </div>

@@ -36,6 +36,8 @@ func New(db *sql.DB, oidcClient *auth.Client, devMode bool) *Handler {
 		emailCfg:  email.ConfigFromEnv(),
 	}
 	h.funcMap = template.FuncMap{
+		"useCaseLabels":    func() []models.Option { return models.UseCaseLabels },
+		"datasetTypeLabels": func() []models.Option { return models.DatasetTypeLabels },
 		"statusClass":    statusClass,
 		"priorityClass":  priorityClass,
 		"truncate":       truncate,
@@ -738,4 +740,13 @@ func (h *Handler) GetStats(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	h.renderPartial(w, r, "stats_cards", PageData{Stats: stats})
+}
+
+func (h *Handler) GetRecent(w http.ResponseWriter, r *http.Request) {
+	recent, err := h.requests.GetRecent(6)
+	if err != nil {
+		http.Error(w, "Internal Server Error", 500)
+		return
+	}
+	h.renderPartial(w, r, "recent_requests", PageData{Recent: recent})
 }

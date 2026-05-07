@@ -10,6 +10,29 @@ import (
 type Status string
 type Priority string
 
+type Option struct {
+	Value string
+	Label string
+}
+
+var UseCaseLabels = []Option{
+	{"physics_analysis", "Physics Analysis"},
+	{"reconstruction_dev", "Reconstruction Development"},
+	{"detector_simulation", "Detector Simulation"},
+	{"ml_training", "ML Training"},
+	{"ml_evaluation", "ML Evaluation"},
+	{"benchmarking", "Benchmarking"},
+	{"calibration", "Calibration"},
+	{"other", "Other"},
+}
+
+var DatasetTypeLabels = []Option{
+	{"generation", "Generation"},
+	{"simulation", "Simulation"},
+	{"reconstruction", "Reconstruction"},
+	{"other", "Other"},
+}
+
 const (
 	StatusDraft      Status = "draft"
 	StatusPending    Status = "pending"
@@ -98,6 +121,24 @@ func (r *DatasetRequest) PriorityLabel() string {
 	default:
 		return string(r.Priority)
 	}
+}
+
+func (r *DatasetRequest) UseCaseLabel() string {
+	for _, o := range UseCaseLabels {
+		if o.Value == r.UseCase {
+			return o.Label
+		}
+	}
+	return r.UseCase
+}
+
+func (r *DatasetRequest) DatasetTypeLabel() string {
+	for _, o := range DatasetTypeLabels {
+		if o.Value == r.DatasetType {
+			return o.Label
+		}
+	}
+	return r.DatasetType
 }
 
 func (r *DatasetRequest) TagList() []string {

@@ -1,0 +1,350 @@
+-- Seed data: additional users + 30 FCC dataset requests
+-- Run with: sqlite3 data/requests.db < scripts/seed.sql
+
+INSERT OR IGNORE INTO users (username, display_name, email, role) VALUES
+  ('akowalski',  'Anna Kowalski',    'akowalski@cern.ch',  'requester'),
+  ('mrossi',     'Marco Rossi',      'mrossi@cern.ch',     'requester'),
+  ('lchen',      'Li Chen',          'lchen@cern.ch',      'requester'),
+  ('hmueller',   'Hans Mueller',     'hmueller@cern.ch',   'requester'),
+  ('sfernandez', 'Sofia Fernandez',  'sfernandez@cern.ch', 'requester'),
+  ('tdupont',    'Thomas Dupont',    'tdupont@cern.ch',    'requester'),
+  ('epatel',     'Elena Patel',      'epatel@cern.ch',     'manager'),
+  ('rkim',       'Robert Kim',       'rkim@cern.ch',       'manager');
+
+INSERT INTO dataset_requests
+  (title, description, requester_name, requester_username, requester_email,
+   department, dataset_type, use_case, status, priority,
+   estimated_size, format, due_date, notes, tags,
+   physics_approval, resources_approval,
+   created_at, updated_at)
+VALUES
+
+-- 1
+('Higgs → bb̄ signal at FCC-ee √s=240 GeV',
+ 'Full simulation of $e^+e^- \to ZH, H \to b\bar{b}$ at 240 GeV centre-of-mass energy. Need at least 10M events for signal efficiency studies in the IDEA detector concept.',
+ 'Anna Kowalski', 'akowalski', 'akowalski@cern.ch',
+ 'Higgs WG', 'simulation', 'physics_analysis', 'in_progress', 'critical',
+ '10M events (~2 TB)', 'EDM4hep', '2026-06-30',
+ 'Pythia8 + Delphes IDEA card. Require full track + cluster truth links.',
+ 'fcc-ee,higgs,bbar',
+ 'approved', 'approved',
+ '2026-01-15 10:00:00', '2026-03-10 14:22:00'),
+
+-- 2
+('$t\bar{t}$ production at FCC-hh 100 TeV',
+ 'Inclusive top-quark pair production for detector acceptance studies. Needed as a SM benchmark before BSM search campaigns begin.',
+ 'Marco Rossi', 'mrossi', 'mrossi@cern.ch',
+ 'Top WG', 'generation', 'physics_analysis', 'completed', 'high',
+ '50M events (~5 TB)', 'HepMC3', '2025-12-01',
+ 'MadGraph5 + Pythia8 shower. No detector sim needed at this stage.',
+ 'fcc-hh,top',
+ 'approved', 'approved',
+ '2025-09-01 08:30:00', '2026-01-20 09:00:00'),
+
+-- 3
+('Drell-Yan background for LLP search',
+ 'Large statistics DY sample for background estimation in the long-lived particle displaced vertex analysis. Need accurate modelling of low-pT tracks.',
+ 'Li Chen', 'lchen', 'lchen@cern.ch',
+ 'Exotics WG', 'simulation', 'physics_analysis', 'in_progress', 'high',
+ '100M events (~8 TB)', 'EDM4hep', '2026-07-15',
+ 'Sherpa 2.2.15. Require QCD multi-jet merging up to 4 jets.',
+ 'fcc-hh,llp,background',
+ 'approved', '',
+ '2026-02-01 11:00:00', '2026-04-05 16:30:00'),
+
+-- 4
+('Z-pole precision: $Z \to \mu\mu$ high-statistics sample',
+ 'Dedicated $Z \to \mu^+\mu^-$ sample at $\sqrt{s}=91.2$ GeV for electroweak precision observables. Requires radiative corrections at NNLO.',
+ 'Sofia Fernandez', 'sfernandez', 'sfernandez@cern.ch',
+ 'EW Precision WG', 'simulation', 'physics_analysis', 'pending', 'critical',
+ '1B events (~50 TB)', 'EDM4hep', '2026-09-01',
+ 'KKMC generator mandatory. Full IDEA detector simulation.',
+ 'fcc-ee,zpole,ewk,precision',
+ '', '',
+ '2026-03-20 09:15:00', '2026-03-20 09:15:00'),
+
+-- 5
+('Tracker alignment sample: $e^+e^- \to \mu\mu$',
+ 'Clean dimuon events for inner tracker alignment studies. Flat pT spectrum from 10 to 100 GeV needed.',
+ 'Hans Mueller', 'hmueller', 'hmueller@cern.ch',
+ 'Tracker WG', 'simulation', 'calibration', 'approved', 'medium',
+ '5M events (~200 GB)', 'EDM4hep', '2026-05-31',
+ 'Uniform angular distribution. Both IDEA and CLD detector concepts.',
+ 'fcc-ee,tracker,alignment,calibration',
+ 'approved', 'approved',
+ '2026-02-10 13:00:00', '2026-04-01 10:00:00'),
+
+-- 6
+('WW threshold scan: $e^+e^- \to W^+W^-$',
+ 'Events at 6 energy points around $\sqrt{s}=161$ GeV for W-mass measurement. Each energy point needs equal statistics.',
+ 'Thomas Dupont', 'tdupont', 'tdupont@cern.ch',
+ 'EW Precision WG', 'simulation', 'physics_analysis', 'pending', 'high',
+ '30M events per energy point (~3 TB total)', 'EDM4hep', '2026-08-01',
+ 'Whizard generator. Include ISR and beam energy spread.',
+ 'fcc-ee,wmass,ww,threshold',
+ '', '',
+ '2026-03-05 10:00:00', '2026-03-05 10:00:00'),
+
+-- 7
+('ECAL single-particle response: electrons 1–100 GeV',
+ 'Geant4 single-electron gun for calorimeter response calibration. Log-spaced energy points needed.',
+ 'Anna Kowalski', 'akowalski', 'akowalski@cern.ch',
+ 'Calorimetry WG', 'simulation', 'calibration', 'completed', 'medium',
+ '500k events per energy point (~500 GB)', 'EDM4hep', '2025-11-30',
+ 'Full Geant4 — no fast sim. Use IDEA noble-liquid ECAL geometry.',
+ 'fcc-ee,ecal,calibration,single-particle',
+ 'approved', 'approved',
+ '2025-08-15 09:00:00', '2025-12-01 11:00:00'),
+
+-- 8
+('Gluino pair production: $\tilde{g}\tilde{g} \to t\bar{t}\tilde{\chi}^0_1\tilde{\chi}^0_1$',
+ 'SUSY gluino pair production grid scan over $(m_{\tilde{g}}, m_{\tilde{\chi}})$ parameter space for FCC-hh prospect paper.',
+ 'Li Chen', 'lchen', 'lchen@cern.ch',
+ 'SUSY WG', 'generation', 'physics_analysis', 'pending', 'medium',
+ '50k events per grid point, ~200 points (~1 TB total)', 'HepMC3', '2026-10-01',
+ 'MadGraph5_aMC@NLO + Pythia8 + fastjet. Provide cross-section table.',
+ 'fcc-hh,susy,bsm,gluino',
+ '', '',
+ '2026-04-01 14:00:00', '2026-04-01 14:00:00'),
+
+-- 9
+('ML training sample: jet flavour tagging',
+ 'Large mixed-flavour jet sample (b, c, light, gluon) for training a graph-neural-network flavour tagger for IDEA.',
+ 'Marco Rossi', 'mrossi', 'mrossi@cern.ch',
+ 'Flavour Tagging WG', 'reconstruction', 'ml_training', 'in_progress', 'high',
+ '200M jets (~10 TB)', 'EDM4hep', '2026-06-15',
+ 'Balanced class weights required. Include pile-up at $\mu=200$.',
+ 'fcc-hh,ml,jets,flavour-tagging',
+ 'approved', 'approved',
+ '2026-01-20 10:00:00', '2026-03-25 17:00:00'),
+
+-- 10
+('Lepton flavour violation: $H \to e\mu$',
+ 'LFV Higgs decay search sample. Signal process $e^+e^- \to ZH, H \to e\mu$ plus irreducible backgrounds.',
+ 'Sofia Fernandez', 'sfernandez', 'sfernandez@cern.ch',
+ 'Higgs WG', 'simulation', 'physics_analysis', 'draft', 'medium',
+ '2M signal + 20M background events', 'EDM4hep', '2026-11-01',
+ 'Need to agree on background composition with Higgs WG convener before production.',
+ 'fcc-ee,higgs,lfv,bsm',
+ '', '',
+ '2026-04-10 15:00:00', '2026-04-10 15:00:00'),
+
+-- 11
+('PID benchmark: pions and kaons in RICH',
+ 'Single-particle gun (π±, K±) across full RICH acceptance for PID efficiency vs. momentum parametrisation.',
+ 'Hans Mueller', 'hmueller', 'hmueller@cern.ch',
+ 'PID WG', 'simulation', 'benchmarking', 'completed', 'low',
+ '1M events per species per momentum point', 'ROOT', '2025-10-15',
+ 'Use IDEA dual-RICH geometry. Output raw Cherenkov hit collections.',
+ 'fcc-ee,pid,rich,benchmark',
+ 'approved', 'approved',
+ '2025-06-01 09:00:00', '2025-10-20 09:00:00'),
+
+-- 12
+('Inclusive $b\bar{b}$ at FCC-ee for B-physics',
+ 'Large $e^+e^- \to b\bar{b}$ sample at $\sqrt{s}=10.58$ GeV (Υ(4S) region) for B-meson oscillation studies.',
+ 'Thomas Dupont', 'tdupont', 'tdupont@cern.ch',
+ 'Flavour WG', 'simulation', 'physics_analysis', 'rejected', 'medium',
+ '500M events (~20 TB)', 'EDM4hep', '2026-07-01',
+ 'Rejected: FCC-ee Υ(4S) running not in the current baseline. Re-submit for Z-pole or 240 GeV.',
+ 'fcc-ee,bphysics,bbar',
+ 'rejected', '',
+ '2026-01-05 10:00:00', '2026-02-14 11:00:00'),
+
+-- 13
+('Muon collider: $\mu^+\mu^- \to H$ at 125 GeV',
+ 'Signal-only Higgs production at a muon collider for sensitivity studies in the FCC feasibility study appendix.',
+ 'Anna Kowalski', 'akowalski', 'akowalski@cern.ch',
+ 'Future Colliders WG', 'generation', 'physics_analysis', 'pending', 'low',
+ '10M events (~500 GB)', 'HepMC3', '2027-01-01',
+ 'Whizard. No detector simulation needed — parton-level only.',
+ 'fcc,muon-collider,higgs',
+ '', '',
+ '2026-04-02 09:00:00', '2026-04-02 09:00:00'),
+
+-- 14
+('Track reconstruction benchmarking: $t\bar{t}$ at 365 GeV',
+ 'Input sample for tracking algorithm benchmarking (Acts). Dense environment with high track multiplicity.',
+ 'Marco Rossi', 'mrossi', 'mrossi@cern.ch',
+ 'Tracker WG', 'reconstruction', 'reconstruction_development', 'in_progress', 'high',
+ '1M events (~500 GB)', 'EDM4hep', '2026-05-01',
+ 'CLD detector geometry. Must include simhit collections — do not strip truth info.',
+ 'fcc-ee,tracker,ttbar,benchmarking',
+ 'approved', 'approved',
+ '2026-02-20 10:00:00', '2026-04-08 12:00:00'),
+
+-- 15
+('$H \to \gamma\gamma$ at FCC-ee 240 GeV',
+ 'Rare Higgs decay to two photons. High-granularity ECAL response is critical; need truth-level photon isolation flags.',
+ 'Li Chen', 'lchen', 'lchen@cern.ch',
+ 'Higgs WG', 'simulation', 'physics_analysis', 'approved', 'high',
+ '5M signal events (~1 TB)', 'EDM4hep', '2026-06-01',
+ 'IDEA detector with full calorimeter segmentation. Store all shower sub-clusters.',
+ 'fcc-ee,higgs,diphoton',
+ 'approved', 'approved',
+ '2026-02-28 14:00:00', '2026-04-03 10:00:00'),
+
+-- 16
+('Low-pT pile-up sample for FCC-hh: minimum bias',
+ 'Minimum-bias events for pile-up overlay ($\mu=1000$). Used in combination with all hard-scatter analyses.',
+ 'Hans Mueller', 'hmueller', 'hmueller@cern.ch',
+ 'Simulation WG', 'generation', 'detector_simulation', 'completed', 'critical',
+ '10B events (~200 TB)', 'HepMC3', '2025-07-01',
+ 'Pythia8 SoftQCD. Pre-mixed pile-up files at 25 ns bunch spacing.',
+ 'fcc-hh,pileup,minimum-bias',
+ 'approved', 'approved',
+ '2025-03-01 08:00:00', '2025-07-10 09:00:00'),
+
+-- 17
+('Dark photon: $A'' \to \ell^+\ell^-$ signal grid',
+ 'Dark photon signal grid scan over mass (0.1–10 GeV) and coupling $\epsilon^2$ for FCC-ee sensitivity projection.',
+ 'Sofia Fernandez', 'sfernandez', 'sfernandez@cern.ch',
+ 'Exotics WG', 'generation', 'physics_analysis', 'draft', 'medium',
+ '100k events per grid point, ~500 points', 'HepMC3', '2026-12-01',
+ 'Need final signal model confirmed by theory group before requesting production.',
+ 'fcc-ee,darkphoton,bsm,llp',
+ '', '',
+ '2026-04-08 16:00:00', '2026-04-08 16:00:00'),
+
+-- 18
+('HCAL tile response: single pions 5–150 GeV',
+ 'Single-particle pion gun for hadronic calorimeter software compensation studies.',
+ 'Thomas Dupont', 'tdupont', 'tdupont@cern.ch',
+ 'Calorimetry WG', 'simulation', 'calibration', 'pending', 'medium',
+ '200k events per energy point, 15 points (~300 GB)', 'EDM4hep', '2026-06-30',
+ 'Full Geant4 QGSP_BERT physics list. Store raw hit energies before digitisation.',
+ 'fcc-hh,hcal,calibration,single-particle',
+ '', '',
+ '2026-03-18 11:00:00', '2026-03-18 11:00:00'),
+
+-- 19
+('$e^+e^- \to \nu\bar\nu H$ invisible Higgs search',
+ 'Signal and background for invisible Higgs width measurement via $ZH$ with $Z \to \nu\bar\nu$.',
+ 'Anna Kowalski', 'akowalski', 'akowalski@cern.ch',
+ 'Higgs WG', 'simulation', 'physics_analysis', 'in_progress', 'critical',
+ '20M events (~3 TB)', 'EDM4hep', '2026-05-15',
+ 'Backgrounds: $e^+e^- \to ZZ, WW$ fully simulated. Cross-feed from $Z \to \ell\ell$ must be included.',
+ 'fcc-ee,higgs,invisible,nunu',
+ 'approved', 'approved',
+ '2026-01-10 09:00:00', '2026-04-02 13:00:00'),
+
+-- 20
+('Flavour tagging validation: $D^0 \to K\pi$',
+ 'Dedicated charm sample for secondary-vertex-based D-meson tagger validation in dense jet environments.',
+ 'Marco Rossi', 'mrossi', 'mrossi@cern.ch',
+ 'Flavour Tagging WG', 'reconstruction', 'reconstruction_development', 'completed', 'low',
+ '10M $D^0$ decays (~400 GB)', 'EDM4hep', '2025-09-01',
+ 'EvtGen decay model. Store full decay tree in truth collection.',
+ 'fcc-ee,charm,flavour-tagging,validation',
+ 'approved', 'approved',
+ '2025-05-10 09:00:00', '2025-09-05 11:00:00'),
+
+-- 21
+('Graviton KK → ZZ at FCC-hh: signal',
+ 'Kaluza-Klein graviton signal samples for spin-2 resonance search in ZZ → llll final state.',
+ 'Li Chen', 'lchen', 'lchen@cern.ch',
+ 'Exotics WG', 'generation', 'physics_analysis', 'pending', 'medium',
+ '500k events per mass point (1–10 TeV, 10 points)', 'HepMC3', '2026-09-01',
+ 'MadGraph5 RS1 model. Include both gg and qq̄ initial states.',
+ 'fcc-hh,bsm,graviton,kk,zz',
+ '', '',
+ '2026-03-30 10:00:00', '2026-03-30 10:00:00'),
+
+-- 22
+('Neutrino background for FCC-ee near detector',
+ 'Neutrino interaction sample for near-detector background studies in the FCC-ee beam dump experiment concept.',
+ 'Hans Mueller', 'hmueller', 'hmueller@cern.ch',
+ 'Beam Dump WG', 'simulation', 'detector_simulation', 'rejected', 'low',
+ '1M events (~100 GB)', 'ROOT', '2026-08-01',
+ 'Rejected: beam dump experiment not yet officially in scope. Resubmit after Physics Case document approval.',
+ 'fcc-ee,neutrino,beam-dump',
+ '', 'rejected',
+ '2026-02-05 10:00:00', '2026-03-01 09:00:00'),
+
+-- 23
+('Full-sim $H \to WW^* \to \ell\nu\ell\nu$ at 240 GeV',
+ 'Full simulation of the most sensitive Higgs coupling channel. High-statistics sample for systematic uncertainty evaluation.',
+ 'Sofia Fernandez', 'sfernandez', 'sfernandez@cern.ch',
+ 'Higgs WG', 'simulation', 'physics_analysis', 'approved', 'high',
+ '15M events (~2.5 TB)', 'EDM4hep', '2026-07-01',
+ 'Both IDEA and CLD detector concepts. Require di-lepton invariant mass < 30 GeV cut at generation.',
+ 'fcc-ee,higgs,ww,leptonic',
+ 'approved', 'approved',
+ '2026-03-01 09:00:00', '2026-04-10 15:00:00'),
+
+-- 24
+('Top quark forward-backward asymmetry at 365 GeV',
+ '$e^+e^- \to t\bar{t}$ at FCC-ee top-threshold energy for $A_{FB}^t$ and anomalous couplings measurement.',
+ 'Thomas Dupont', 'tdupont', 'tdupont@cern.ch',
+ 'Top WG', 'simulation', 'physics_analysis', 'completed', 'medium',
+ '5M events (~1.5 TB)', 'EDM4hep', '2025-12-15',
+ 'Whizard with ISR. Both semileptonic and fully hadronic $t\bar{t}$ decays.',
+ 'fcc-ee,top,threshold,afb',
+ 'approved', 'approved',
+ '2025-07-01 08:00:00', '2025-12-20 10:00:00'),
+
+-- 25
+('Fast-sim parametrisation training: ECAL',
+ 'Full-sim e/γ shower library to train the fast-simulation neural network (Delphes replacement).',
+ 'Anna Kowalski', 'akowalski', 'akowalski@cern.ch',
+ 'Simulation WG', 'simulation', 'ml_training', 'in_progress', 'high',
+ '10M single particles, 20 energy points (~3 TB)', 'EDM4hep', '2026-06-01',
+ 'Geant4 full sim only. Include lateral shower profiles at each depth layer.',
+ 'fcc-ee,fastsim,ml,ecal',
+ 'approved', 'approved',
+ '2026-02-15 10:00:00', '2026-04-04 14:00:00'),
+
+-- 26
+('Dijet QCD background for resonance searches',
+ 'High-pT dijet sample for the full invariant mass spectrum from 500 GeV to 50 TeV at FCC-hh.',
+ 'Marco Rossi', 'mrossi', 'mrossi@cern.ch',
+ 'QCD WG', 'generation', 'physics_analysis', 'pending', 'medium',
+ '500M events in pT-sliced bins (~30 TB)', 'HepMC3', '2026-10-01',
+ 'Pythia8 with pT-hat slicing. Provide HT-weighted merging cross-sections.',
+ 'fcc-hh,qcd,dijet,background',
+ '', '',
+ '2026-04-05 11:00:00', '2026-04-05 11:00:00'),
+
+-- 27
+('$e^+e^- \to \tau^+\tau^-$ at Z-pole',
+ 'Tau-pair production for lepton universality test and tau polarisation measurement at the Z pole.',
+ 'Li Chen', 'lchen', 'lchen@cern.ch',
+ 'EW Precision WG', 'simulation', 'physics_analysis', 'draft', 'low',
+ '100M events (~5 TB)', 'EDM4hep', '2026-11-01',
+ 'KKMC + TAUOLA. Both hadronic and leptonic tau decays needed.',
+ 'fcc-ee,zpole,tau,ew-precision',
+ '', '',
+ '2026-04-09 10:00:00', '2026-04-09 10:00:00'),
+
+-- 28
+('Vector boson scattering: $W^+W^-jj$ at FCC-hh',
+ 'EW production of same-sign WW via VBS topology for Higgs-gauge coupling unitarisation studies.',
+ 'Hans Mueller', 'hmueller', 'hmueller@cern.ch',
+ 'Higgs WG', 'generation', 'physics_analysis', 'cancelled', 'medium',
+ '50M events (~4 TB)', 'HepMC3', '2026-08-01',
+ 'Cancelled: overlap identified with EW WG production request #31. Merging into that request.',
+ 'fcc-hh,vbs,ww,higgs',
+ '', '',
+ '2026-01-25 10:00:00', '2026-03-05 09:00:00'),
+
+-- 29
+('CLD vs. IDEA fast-sim benchmarking sample',
+ 'Common hard-scatter sample ($t\bar{t}$, VH, dijets) run through both CLD and IDEA fast simulation for detector comparison paper.',
+ 'Sofia Fernandez', 'sfernandez', 'sfernandez@cern.ch',
+ 'Simulation WG', 'reconstruction', 'benchmarking', 'pending', 'medium',
+ '1M events per process per detector (~2 TB)', 'EDM4hep', '2026-07-15',
+ 'Identical generator-level input required for both detectors. Store reco objects only.',
+ 'fcc-ee,cld,idea,benchmarking,detector-comparison',
+ '', '',
+ '2026-03-25 09:00:00', '2026-03-25 09:00:00'),
+
+-- 30
+('High-mass $Z'' \to \ell\ell$ signal at FCC-hh',
+ 'Sequential SM $Z''$ signal samples from 1 to 40 TeV for dilepton resonance search sensitivity estimates.',
+ 'Thomas Dupont', 'tdupont', 'tdupont@cern.ch',
+ 'Exotics WG', 'generation', 'physics_analysis', 'pending', 'high',
+ '200k events per mass point (20 points, ~500 GB)', 'HepMC3', '2026-09-15',
+ 'Pythia8 SSM $Z''$ model. Include detector-level smearing via Delphes FCC-hh card for fast estimate.',
+ 'fcc-hh,bsm,zprime,dilepton',
+ '', '',
+ '2026-04-11 10:00:00', '2026-04-11 10:00:00');
