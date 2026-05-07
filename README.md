@@ -31,15 +31,15 @@ sure nothing falls through the cracks.
 
 ## Tech Stack
 
-| Layer     | Technology                                         |
-|-----------|----------------------------------------------------|
-| Backend   | Go 1.22+ (`net/http` standard library)             |
-| Frontend  | HTMX 2 + Tailwind CSS (self-hosted, compiled)      |
-| Database  | SQLite (`modernc.org/sqlite`, no CGO)              |
-| Auth      | CERN SSO via OpenID Connect (Keycloak)             |
-| Math/MD   | KaTeX + marked.js (self-hosted)                    |
-| Fonts     | Inter (self-hosted woff2 subsets)                  |
-| Email     | Go stdlib `net/smtp`                               |
+| Layer     | Technology                                                              |
+|-----------|-------------------------------------------------------------------------|
+| Backend   | Go 1.22+ (`net/http` standard library)                                  |
+| Frontend  | HTMX 2 + Tailwind CSS (self-hosted, compiled)                           |
+| Database  | SQLite (local dev, no CGO) / PostgreSQL via CERN DBOD (production)      |
+| Auth      | CERN SSO via OpenID Connect (Keycloak)                                  |
+| Math/MD   | KaTeX + marked.js (self-hosted)                                         |
+| Fonts     | Inter (self-hosted woff2 subsets)                                       |
+| Email     | Go stdlib `net/smtp`                                                    |
 
 Single binary, no CGO required. No external CDN dependencies at runtime.
 
@@ -63,24 +63,14 @@ DEV_MODE=TRUE go run ./cmd/bob
 
 Open **http://localhost:5050**, enter a username, choose a role (requester or manager), and log in.
 
-### Production (CERN SSO)
-
-Register the application at the [CERN Application Portal](https://application-portal.web.cern.ch) to obtain a client ID and secret, then:
-
-```bash
-export OIDC_CLIENT_ID=your-client-id
-export OIDC_CLIENT_SECRET=your-client-secret
-export OIDC_REDIRECT_URL=https://your-host/auth/callback
-export MANAGER_USERNAMES=jsmith,adoe        # comma-separated CERN usernames
-
-go run ./cmd/bob
-```
-
 ### Build
 
 ```bash
+# Development build (SQLite)
 go build -o bob ./cmd/bob
-./bob
+
+# Production build (PostgreSQL — for CERN PaaS deployment)
+go build -tags prod -o bob ./cmd/bob
 ```
 
 ### Front-end assets
@@ -95,7 +85,7 @@ Run this once after cloning and again whenever you modify templates (Tailwind on
 
 > **TODO:** Replace the Tailwind CLI build step with hand-crafted utility classes in `style.css`, eliminating the build dependency entirely.
 
-The server starts on **http://localhost:5050**. The SQLite database is created automatically at `./data/requests.db` on first run.
+The server starts on **http://localhost:5050**. The SQLite database is created automatically at `./data/requests.db` on first run (dev mode only).
 
 ### Email notifications (optional)
 
@@ -140,12 +130,15 @@ bob/
 │   ├── auth/
 │   │   └── oidc.go               # CERN SSO OIDC client
 │   ├── db/
-│   │   └── db.go                 # SQLite init & migrations
+│   │   ├── db.go                 # DB wrapper (Rebind, Like helpers)
+│   │   ├── sqlite.go             # SQLite init & migrations (dev, build tag: !prod)
+│   │   └── postgres.go           # PostgreSQL init & migrations (prod, build tag: prod)
 │   ├── email/
 │   │   └── email.go              # SMTP email notifications
 │   ├── middleware/
 │   │   └── auth.go               # Session middleware, role guards
 │   ├── models/
+│   │   ├── helper.go             # Driver-aware query helpers & time scanner
 │   │   ├── request.go            # Dataset request model & store
 │   │   ├── update.go             # Activity log model & store
 │   │   └── user.go               # User & session model & store
@@ -173,12 +166,100 @@ bob/
 │   ├── style.css                 # Custom styles (bento grid, badges, dark mode)
 │   ├── logo.png
 │   └── favicon.png
-├── data/                         # SQLite database (git-ignored)
+├── openshift/                    # CERN PaaS deployment manifests
+│   ├── secret.yaml               # OIDC + DB credentials (fill in before applying)
+│   ├── configmap.yaml            # Manager usernames
+│   ├── deployment.yaml           # Deployment spec
+│   ├── service.yaml              # ClusterIP service
+│   └── route.yaml                # HTTPS route (*.web.cern.ch)
+├── Dockerfile                    # Multi-stage production image (-tags prod)
+├── data/                         # SQLite database (dev only, git-ignored)
 ├── go.mod
 ├── go.sum
 ├── LICENSE
 └── README.md
 ```
+
+---
+
+## Deployment (CERN PaaS / OpenShift)
+
+Bob runs on [CERN PaaS](https://paas.cern.ch) (OpenShift) with a PostgreSQL database provided by the [CERN DBOD](https://dbod.web.cern.ch) service.
+
+### Prerequisites
+
+- A CERN OpenShift project (`oc login` access)
+- A PostgreSQL instance provisioned via CERN DBOD
+- Application registered at the [CERN Application Portal](https://application-portal.web.cern.ch) to obtain an OIDC client ID and secret
+
+### 1. Build and push the container image
+
+The production build uses the `prod` build tag, which enables PostgreSQL and disables SQLite.
+
+```bash
+docker build -t gitlab-registry.cern.ch/<your-group>/bob:latest .
+docker push gitlab-registry.cern.ch/<your-group>/bob:latest
+```
+
+Update `openshift/deployment.yaml` with your image path.
+
+### 2. Fill in secrets
+
+Edit `openshift/secret.yaml` with your actual credentials (do **not** commit this file with real values):
+
+```yaml
+stringData:
+  database-url: "postgresql://user:password@dbod-host.cern.ch:5432/database?sslmode=require"
+  oidc-client-id: "your-client-id"
+  oidc-client-secret: "your-client-secret"
+  oidc-redirect-url: "https://bob.web.cern.ch/auth/callback"
+```
+
+Edit `openshift/configmap.yaml` with the CERN usernames that should have the manager role:
+
+```yaml
+data:
+  manager-usernames: "jsmith,adoe"
+```
+
+Edit `openshift/route.yaml` and replace `REPLACE_WITH_HOSTNAME` with your actual hostname (e.g. `bob.web.cern.ch`).
+
+### 3. Apply the manifests
+
+```bash
+oc apply -f openshift/secret.yaml
+oc apply -f openshift/configmap.yaml
+oc apply -f openshift/deployment.yaml
+oc apply -f openshift/service.yaml
+oc apply -f openshift/route.yaml
+```
+
+### 4. Verify
+
+```bash
+oc get pods        # pod should reach Running state
+oc get route bob   # shows the public URL
+oc logs -f deployment/bob  # tail logs
+```
+
+The database schema is created automatically on first startup. No manual migration step is required.
+
+### Environment variables reference
+
+| Variable            | Required | Description |
+|---------------------|----------|-------------|
+| `DATABASE_URL`      | Yes (prod) | PostgreSQL connection string from CERN DBOD |
+| `OIDC_CLIENT_ID`    | Yes (prod) | CERN Application Portal client ID |
+| `OIDC_CLIENT_SECRET`| Yes (prod) | CERN Application Portal client secret |
+| `OIDC_REDIRECT_URL` | Yes (prod) | Must be `https://<hostname>/auth/callback` |
+| `MANAGER_USERNAMES` | No  | Comma-separated CERN usernames granted manager role |
+| `DEV_MODE`          | No  | Set to `TRUE` to bypass CERN SSO (local dev only) |
+| `SQLITE_PATH`       | No  | Override SQLite file path (dev only, default `./data/requests.db`) |
+| `SMTP_HOST`         | No  | SMTP server for email notifications |
+| `SMTP_PORT`         | No  | SMTP port (default 587) |
+| `SMTP_USER`         | No  | SMTP username |
+| `SMTP_PASS`         | No  | SMTP password |
+| `SMTP_FROM`         | No  | From address for notification emails |
 
 ---
 
@@ -199,6 +280,23 @@ bob/
 | Notes                      | No  | Generator settings, beam conditions, special requirements |
 
 Requester identity (name, username, email) is populated automatically from CERN SSO and is not editable.
+
+---
+
+## ToDo
+
+* Validation plots generation
+* Dataset final stage
+* Key4hep release
+* MC Generator Card upload
+* Extensions:
+  * Extend the existing production (number of events)
+  * Continue along the event processing chain
+  * Extend number of targeted detectors
+* Statistics and size should be separated
+* Add Delphes as a stage
+* Field to specify detector option and version
+
 
 ---
 

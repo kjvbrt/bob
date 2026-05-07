@@ -1,0 +1,71 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: bob
+  labels:
+    app: bob
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: bob
+  template:
+    metadata:
+      labels:
+        app: bob
+    spec:
+      containers:
+        - name: bob
+          # Replace with your CERN GitLab registry image, e.g.:
+          # gitlab-registry.cern.ch/<group>/bob:latest
+          image: REPLACE_WITH_IMAGE
+          ports:
+            - containerPort: 5050
+          env:
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: bob-secrets
+                  key: database-url
+            - name: OIDC_CLIENT_ID
+              valueFrom:
+                secretKeyRef:
+                  name: bob-secrets
+                  key: oidc-client-id
+            - name: OIDC_CLIENT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: bob-secrets
+                  key: oidc-client-secret
+            - name: OIDC_REDIRECT_URL
+              valueFrom:
+                secretKeyRef:
+                  name: bob-secrets
+                  key: oidc-redirect-url
+            - name: MANAGER_USERNAMES
+              valueFrom:
+                configMapKeyRef:
+                  name: bob-config
+                  key: manager-usernames
+          readinessProbe:
+            httpGet:
+              path: /login
+              port: 5050
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /login
+              port: 5050
+            initialDelaySeconds: 15
+            periodSeconds: 30
+          resources:
+            requests:
+              memory: "64Mi"
+              cpu: "50m"
+            limits:
+              memory: "256Mi"
+              cpu: "500m"
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1001

@@ -1,0 +1,17 @@
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: bob
+  labels:
+    app: bob
+spec:
+  # Replace with your actual hostname, e.g. bob.web.cern.ch
+  host: REPLACE_WITH_HOSTNAME
+  to:
+    kind: Service
+    name: bob
+  port:
+    targetPort: 5050
+  tls:
+    termination: edge
+    insecureEdgeTerminationPolicy: Redirect

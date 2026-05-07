@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: bob-config
+data:
+  # Comma-separated CERN usernames that receive the manager role on first login.
+  manager-usernames: ""

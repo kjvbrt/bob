@@ -47,22 +47,23 @@ func (u *User) Initial() string {
 
 type UserStore struct {
 	db *sql.DB
+	dbHelper
 }
 
-func NewUserStore(db *sql.DB) *UserStore {
-	return &UserStore{db: db}
+func NewUserStore(db *sql.DB, driver string) *UserStore {
+	return &UserStore{db: db, dbHelper: newHelper(driver)}
 }
 
 // Upsert creates or updates a user on every SSO login, returning the current record.
 func (r *UserStore) Upsert(username, displayName, email string, role Role) (*User, error) {
-	_, err := r.db.Exec(`
+	_, err := r.db.Exec(r.rebind(`
 		INSERT INTO users (username, display_name, email, role, last_login)
 		VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP)
 		ON CONFLICT(username) DO UPDATE SET
 			display_name = excluded.display_name,
 			email        = excluded.email,
 			last_login   = CURRENT_TIMESTAMP
-	`, username, displayName, email, role)
+	`), username, displayName, email, role)
 	if err != nil {
 		return nil, fmt.Errorf("upsert user: %w", err)
 	}
@@ -70,16 +71,16 @@ func (r *UserStore) Upsert(username, displayName, email string, role Role) (*Use
 }
 
 func (r *UserStore) GetByUsername(username string) (*User, error) {
-	row := r.db.QueryRow(`
+	row := r.db.QueryRow(r.rebind(`
 		SELECT id, username, display_name, email, role, created_at, last_login
-		FROM users WHERE username = ?`, username)
+		FROM users WHERE username = ?`), username)
 	return scanUser(row)
 }
 
 func (r *UserStore) GetByID(id int) (*User, error) {
-	row := r.db.QueryRow(`
+	row := r.db.QueryRow(r.rebind(`
 		SELECT id, username, display_name, email, role, created_at, last_login
-		FROM users WHERE id = ?`, id)
+		FROM users WHERE id = ?`), id)
 	return scanUser(row)
 }
 
@@ -87,24 +88,24 @@ func (r *UserStore) GetByID(id int) (*User, error) {
 
 func (r *UserStore) CreateSession(userID int, token string, expiresAt time.Time) error {
 	_, err := r.db.Exec(
-		`INSERT INTO sessions (id, user_id, expires_at) VALUES (?, ?, ?)`,
-		token, userID, expiresAt.Format("2006-01-02 15:04:05"),
+		r.rebind(`INSERT INTO sessions (id, user_id, expires_at) VALUES (?, ?, ?)`),
+		token, userID, expiresAt,
 	)
 	return err
 }
 
 func (r *UserStore) GetSession(token string) (*User, error) {
-	row := r.db.QueryRow(`
+	row := r.db.QueryRow(r.rebind(`
 		SELECT u.id, u.username, u.display_name, u.email, u.role, u.created_at, u.last_login
 		FROM sessions s
 		JOIN users u ON u.id = s.user_id
 		WHERE s.id = ? AND s.expires_at > CURRENT_TIMESTAMP
-	`, token)
+	`), token)
 	return scanUser(row)
 }
 
 func (r *UserStore) DeleteSession(token string) error {
-	_, err := r.db.Exec(`DELETE FROM sessions WHERE id = ?`, token)
+	_, err := r.db.Exec(r.rebind(`DELETE FROM sessions WHERE id = ?`), token)
 	return err
 }
 
@@ -134,15 +135,9 @@ func (r *UserStore) PurgeExpiredSessions() error {
 
 func scanUser(row scannable) (*User, error) {
 	var u User
-	var createdAt, lastLogin string
 	err := row.Scan(
 		&u.ID, &u.Username, &u.DisplayName, &u.Email, &u.Role,
-		&createdAt, &lastLogin,
+		timeVal{&u.CreatedAt}, timeVal{&u.LastLogin},
 	)
-	if err != nil {
-		return nil, err
-	}
-	u.CreatedAt, _ = time.Parse("2006-01-02 15:04:05", createdAt)
-	u.LastLogin, _ = time.Parse("2006-01-02 15:04:05", lastLogin)
-	return &u, nil
+	return &u, err
 }

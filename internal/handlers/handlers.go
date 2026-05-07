@@ -26,11 +26,11 @@ type Handler struct {
 	emailCfg  email.Config
 }
 
-func New(db *sql.DB, oidcClient *auth.Client, devMode bool) *Handler {
+func New(db *sql.DB, driver string, oidcClient *auth.Client, devMode bool) *Handler {
 	h := &Handler{
-		requests:  models.NewRequestStore(db),
-		users:     models.NewUserStore(db),
-		updates:   models.NewUpdateStore(db),
+		requests:  models.NewRequestStore(db, driver),
+		users:     models.NewUserStore(db, driver),
+		updates:   models.NewUpdateStore(db, driver),
 		oidc:      oidcClient,
 		devMode:   devMode,
 		emailCfg:  email.ConfigFromEnv(),

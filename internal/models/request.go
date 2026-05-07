@@ -51,29 +51,29 @@ const (
 )
 
 type DatasetRequest struct {
-	ID                    int
-	Title                 string
-	Description           string
-	RequesterName         string
-	RequesterUsername     string
-	RequesterEmail        string
-	Department            string
-	DatasetType           string
-	UseCase               string
-	Status                Status
-	Priority              Priority
-	EstimatedSize         string
-	Format                string
-	DueDate               string
-	Notes                 string
-	Tags                  string
-	CreatedBy             int
-	AssignedTo            int
-	AssignedToName        string
-	PhysicsApproval       string // "" | "approved" | "rejected"
-	ResourcesApproval     string // "" | "approved" | "rejected"
-	CreatedAt             time.Time
-	UpdatedAt             time.Time
+	ID                int
+	Title             string
+	Description       string
+	RequesterName     string
+	RequesterUsername string
+	RequesterEmail    string
+	Department        string
+	DatasetType       string
+	UseCase           string
+	Status            Status
+	Priority          Priority
+	EstimatedSize     string
+	Format            string
+	DueDate           string
+	Notes             string
+	Tags              string
+	CreatedBy         int
+	AssignedTo        int
+	AssignedToName    string
+	PhysicsApproval   string // "" | "approved" | "rejected"
+	ResourcesApproval string // "" | "approved" | "rejected"
+	CreatedAt         time.Time
+	UpdatedAt         time.Time
 }
 
 func (r *DatasetRequest) ApprovalLabel(v string) string {
@@ -166,10 +166,11 @@ type Stats struct {
 
 type RequestStore struct {
 	db *sql.DB
+	dbHelper
 }
 
-func NewRequestStore(db *sql.DB) *RequestStore {
-	return &RequestStore{db: db}
+func NewRequestStore(db *sql.DB, driver string) *RequestStore {
+	return &RequestStore{db: db, dbHelper: newHelper(driver)}
 }
 
 const selectCols = `
@@ -216,13 +217,14 @@ func (r *RequestStore) GetAll(status, priority, search, sortCol, sortDir string,
 		args = append(args, priority)
 	}
 	if search != "" {
-		where += " AND (dr.title LIKE ? OR dr.description LIKE ? OR dr.requester_name LIKE ? OR dr.department LIKE ?)"
+		like := r.like()
+		where += fmt.Sprintf(" AND (dr.title %s ? OR dr.description %s ? OR dr.requester_name %s ? OR dr.department %s ?)", like, like, like, like)
 		s := "%" + search + "%"
 		args = append(args, s, s, s, s)
 	}
 
 	var total int
-	if err := r.db.QueryRow("SELECT COUNT(*) FROM dataset_requests dr "+where, args...).Scan(&total); err != nil {
+	if err := r.db.QueryRow(r.rebind("SELECT COUNT(*) FROM dataset_requests dr "+where), args...).Scan(&total); err != nil {
 		return nil, 0, fmt.Errorf("count requests: %w", err)
 	}
 
@@ -233,10 +235,10 @@ func (r *RequestStore) GetAll(status, priority, search, sortCol, sortDir string,
 		page = 1
 	}
 
-	query := `SELECT` + selectCols + `
+	query := r.rebind(`SELECT` + selectCols + `
 		FROM dataset_requests dr
 		LEFT JOIN users au ON au.id = dr.assigned_to
-		` + where + ` ORDER BY ` + requestOrderBy(sortCol, sortDir) + ` LIMIT ? OFFSET ?`
+		` + where + ` ORDER BY ` + requestOrderBy(sortCol, sortDir) + ` LIMIT ? OFFSET ?`)
 	args = append(args, perPage, (page-1)*perPage)
 
 	rows, err := r.db.Query(query, args...)
@@ -258,13 +260,13 @@ func (r *RequestStore) GetAll(status, priority, search, sortCol, sortDir string,
 
 // GetActive returns non-terminal requests (pending, approved, in_progress) sorted by priority then age.
 func (r *RequestStore) GetActive() ([]*DatasetRequest, error) {
-	rows, err := r.db.Query(`SELECT` + selectCols + `
+	rows, err := r.db.Query(r.rebind(`SELECT` + selectCols + `
 		FROM dataset_requests dr
 		LEFT JOIN users au ON au.id = dr.assigned_to
 		WHERE dr.status IN ('pending', 'approved', 'in_progress')
 		ORDER BY
 			CASE dr.priority WHEN 'critical' THEN 0 WHEN 'high' THEN 1 WHEN 'medium' THEN 2 ELSE 3 END,
-			dr.created_at ASC`)
+			dr.created_at ASC`))
 	if err != nil {
 		return nil, fmt.Errorf("query active requests: %w", err)
 	}
@@ -282,10 +284,10 @@ func (r *RequestStore) GetActive() ([]*DatasetRequest, error) {
 }
 
 func (r *RequestStore) GetByID(id int) (*DatasetRequest, error) {
-	row := r.db.QueryRow(`SELECT`+selectCols+`
+	row := r.db.QueryRow(r.rebind(`SELECT`+selectCols+`
 		FROM dataset_requests dr
 		LEFT JOIN users au ON au.id = dr.assigned_to
-		WHERE dr.id = ?`, id)
+		WHERE dr.id = ?`), id)
 	return scanRequest(row)
 }
 
@@ -294,29 +296,28 @@ func (r *RequestStore) Create(req *DatasetRequest) (int64, error) {
 	if req.CreatedBy != 0 {
 		createdBy = req.CreatedBy
 	}
-	result, err := r.db.Exec(`
+	var id int64
+	err := r.db.QueryRow(r.rebind(`
 		INSERT INTO dataset_requests
 			(title, description, requester_name, requester_username, requester_email,
 			 department, dataset_type, use_case, status, priority, estimated_size, format,
 			 due_date, notes, tags, created_by)
-		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+		RETURNING id`),
 		req.Title, req.Description, req.RequesterName, req.RequesterUsername, req.RequesterEmail,
 		req.Department, req.DatasetType, req.UseCase, req.Status, req.Priority,
 		req.EstimatedSize, req.Format, req.DueDate, req.Notes, req.Tags, createdBy,
-	)
-	if err != nil {
-		return 0, fmt.Errorf("insert request: %w", err)
-	}
-	return result.LastInsertId()
+	).Scan(&id)
+	return id, err
 }
 
 func (r *RequestStore) Update(req *DatasetRequest) error {
-	_, err := r.db.Exec(`
+	_, err := r.db.Exec(r.rebind(`
 		UPDATE dataset_requests SET
 			title=?, description=?, requester_name=?, requester_username=?, requester_email=?,
 			department=?, dataset_type=?, use_case=?, status=?, priority=?,
 			estimated_size=?, format=?, due_date=?, notes=?, tags=?
-		WHERE id=?`,
+		WHERE id=?`),
 		req.Title, req.Description, req.RequesterName, req.RequesterUsername, req.RequesterEmail,
 		req.Department, req.DatasetType, req.UseCase, req.Status, req.Priority,
 		req.EstimatedSize, req.Format, req.DueDate, req.Notes, req.Tags, req.ID,
@@ -325,7 +326,7 @@ func (r *RequestStore) Update(req *DatasetRequest) error {
 }
 
 func (r *RequestStore) UpdateStatus(id int, status Status) error {
-	_, err := r.db.Exec("UPDATE dataset_requests SET status=? WHERE id=?", status, id)
+	_, err := r.db.Exec(r.rebind("UPDATE dataset_requests SET status=? WHERE id=?"), status, id)
 	return err
 }
 
@@ -334,17 +335,17 @@ func (r *RequestStore) UpdateApproval(id int, track, decision string) error {
 	if track == "resources" {
 		col = "resources_approval"
 	}
-	_, err := r.db.Exec("UPDATE dataset_requests SET "+col+"=? WHERE id=?", decision, id)
+	_, err := r.db.Exec(r.rebind("UPDATE dataset_requests SET "+col+"=? WHERE id=?"), decision, id)
 	return err
 }
 
 func (r *RequestStore) ResetApprovals(id int) error {
-	_, err := r.db.Exec("UPDATE dataset_requests SET physics_approval='', resources_approval='' WHERE id=?", id)
+	_, err := r.db.Exec(r.rebind("UPDATE dataset_requests SET physics_approval='', resources_approval='' WHERE id=?"), id)
 	return err
 }
 
 func (r *RequestStore) UpdatePriority(id int, priority Priority) error {
-	_, err := r.db.Exec("UPDATE dataset_requests SET priority=? WHERE id=?", priority, id)
+	_, err := r.db.Exec(r.rebind("UPDATE dataset_requests SET priority=? WHERE id=?"), priority, id)
 	return err
 }
 
@@ -353,12 +354,12 @@ func (r *RequestStore) Assign(id, assignedTo int) error {
 	if assignedTo != 0 {
 		uid = assignedTo
 	}
-	_, err := r.db.Exec("UPDATE dataset_requests SET assigned_to=? WHERE id=?", uid, id)
+	_, err := r.db.Exec(r.rebind("UPDATE dataset_requests SET assigned_to=? WHERE id=?"), uid, id)
 	return err
 }
 
 func (r *RequestStore) Delete(id int) error {
-	_, err := r.db.Exec("DELETE FROM dataset_requests WHERE id=?", id)
+	_, err := r.db.Exec(r.rebind("DELETE FROM dataset_requests WHERE id=?"), id)
 	return err
 }
 
@@ -382,10 +383,10 @@ func (r *RequestStore) GetStats() (*Stats, error) {
 }
 
 func (r *RequestStore) GetRecent(limit int) ([]*DatasetRequest, error) {
-	rows, err := r.db.Query(`SELECT`+selectCols+`
+	rows, err := r.db.Query(r.rebind(`SELECT`+selectCols+`
 		FROM dataset_requests dr
 		LEFT JOIN users au ON au.id = dr.assigned_to
-		ORDER BY dr.created_at DESC LIMIT ?`, limit)
+		ORDER BY dr.created_at DESC LIMIT ?`), limit)
 	if err != nil {
 		return nil, err
 	}
@@ -402,42 +403,19 @@ func (r *RequestStore) GetRecent(limit int) ([]*DatasetRequest, error) {
 	return requests, rows.Err()
 }
 
-var timeFormats = []string{
-	"2006-01-02 15:04:05",
-	"2006-01-02T15:04:05Z",
-	"2006-01-02T15:04:05",
-	"2006-01-02 15:04:05+00:00",
-	"2006-01-02T15:04:05+00:00",
-}
-
-func parseTime(s string) time.Time {
-	for _, f := range timeFormats {
-		if t, err := time.Parse(f, s); err == nil {
-			return t
-		}
-	}
-	return time.Time{}
-}
-
 type scannable interface {
 	Scan(dest ...interface{}) error
 }
 
 func scanRequest(row scannable) (*DatasetRequest, error) {
 	var req DatasetRequest
-	var createdAt, updatedAt string
 	err := row.Scan(
 		&req.ID, &req.Title, &req.Description, &req.RequesterName, &req.RequesterUsername, &req.RequesterEmail,
 		&req.Department, &req.DatasetType, &req.UseCase, &req.Status, &req.Priority,
 		&req.EstimatedSize, &req.Format, &req.DueDate, &req.Notes, &req.Tags,
 		&req.CreatedBy, &req.AssignedTo, &req.AssignedToName,
 		&req.PhysicsApproval, &req.ResourcesApproval,
-		&createdAt, &updatedAt,
+		timeVal{&req.CreatedAt}, timeVal{&req.UpdatedAt},
 	)
-	if err != nil {
-		return nil, err
-	}
-	req.CreatedAt = parseTime(createdAt)
-	req.UpdatedAt = parseTime(updatedAt)
-	return &req, nil
+	return &req, err
 }

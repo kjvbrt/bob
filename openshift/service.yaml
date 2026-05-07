@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: bob
+  labels:
+    app: bob
+spec:
+  selector:
+    app: bob
+  ports:
+    - port: 5050
+      targetPort: 5050

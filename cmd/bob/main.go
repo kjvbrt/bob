@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"io"
 	"log"
 	"log/slog"
 	"net/http"
@@ -15,35 +14,13 @@ import (
 	"dataset-tracker/internal/models"
 )
 
-const logPath = "./data/bob.log"
-
 func main() {
 	devMode := os.Getenv("DEV_MODE") == "TRUE"
 
-	if err := os.MkdirAll("./data", 0755); err != nil {
-		log.Fatal("create data dir:", err)
-	}
-
-	// Dev mode: truncate the log on every restart. Production: append.
-	logFlags := os.O_CREATE | os.O_WRONLY
-	if devMode {
-		logFlags |= os.O_TRUNC
-	} else {
-		logFlags |= os.O_APPEND
-	}
-	logFile, err := os.OpenFile(logPath, logFlags, 0644)
-	if err != nil {
-		log.Fatal("open log file:", err)
-	}
-	defer logFile.Close()
-
-	logger := slog.New(slog.NewTextHandler(
-		io.MultiWriter(os.Stdout, logFile),
-		&slog.HandlerOptions{Level: slog.LevelInfo},
-	))
+	logger := slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelInfo}))
 	slog.SetDefault(logger)
 
-	database, err := db.Init("./data/requests.db")
+	database, err := db.Init()
 	if err != nil {
 		log.Fatal("init db:", err)
 	}
@@ -66,8 +43,8 @@ func main() {
 		slog.Warn("OIDC_CLIENT_ID not set — CERN SSO login will be unavailable")
 	}
 
-	userRepo := models.NewUserStore(database)
-	h := handlers.New(database, oidcClient, devMode)
+	userRepo := models.NewUserStore(database.DB, database.DriverName())
+	h := handlers.New(database.DB, database.DriverName(), oidcClient, devMode)
 
 	authMW := middleware.Auth(userRepo)
 

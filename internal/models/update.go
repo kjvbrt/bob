@@ -38,10 +38,11 @@ func (u *Update) IsInternal() bool {
 
 type UpdateStore struct {
 	db *sql.DB
+	dbHelper
 }
 
-func NewUpdateStore(db *sql.DB) *UpdateStore {
-	return &UpdateStore{db: db}
+func NewUpdateStore(db *sql.DB, driver string) *UpdateStore {
+	return &UpdateStore{db: db, dbHelper: newHelper(driver)}
 }
 
 func (us *UpdateStore) Add(requestID, userID int, updateType UpdateType, body string) error {
@@ -50,26 +51,26 @@ func (us *UpdateStore) Add(requestID, userID int, updateType UpdateType, body st
 		uid = userID
 	}
 	_, err := us.db.Exec(
-		`INSERT INTO request_events (request_id, user_id, type, body) VALUES (?, ?, ?, ?)`,
+		us.rebind(`INSERT INTO request_events (request_id, user_id, type, body) VALUES (?, ?, ?, ?)`),
 		requestID, uid, updateType, body,
 	)
 	if err != nil {
 		return err
 	}
 	// Touch updated_at so the request floats to the top in activity-sorted views.
-	_, err = us.db.Exec(`UPDATE dataset_requests SET updated_at = CURRENT_TIMESTAMP WHERE id = ?`, requestID)
+	_, err = us.db.Exec(us.rebind(`UPDATE dataset_requests SET updated_at = CURRENT_TIMESTAMP WHERE id = ?`), requestID)
 	return err
 }
 
 func (us *UpdateStore) GetByRequestID(requestID int) ([]*Update, error) {
-	rows, err := us.db.Query(`
+	rows, err := us.db.Query(us.rebind(`
 		SELECT e.id, e.request_id, COALESCE(e.user_id, 0),
 		       COALESCE(u.username, ''), COALESCE(u.display_name, 'System'),
 		       e.type, e.body, e.created_at
 		FROM request_events e
 		LEFT JOIN users u ON u.id = e.user_id
 		WHERE e.request_id = ?
-		ORDER BY e.created_at ASC`, requestID)
+		ORDER BY e.created_at ASC`), requestID)
 	if err != nil {
 		return nil, fmt.Errorf("query updates: %w", err)
 	}
@@ -78,15 +79,13 @@ func (us *UpdateStore) GetByRequestID(requestID int) ([]*Update, error) {
 	var updates []*Update
 	for rows.Next() {
 		var up Update
-		var createdAt string
 		if err := rows.Scan(
 			&up.ID, &up.RequestID, &up.UserID,
 			&up.Username, &up.DisplayName,
-			&up.Type, &up.Body, &createdAt,
+			&up.Type, &up.Body, timeVal{&up.CreatedAt},
 		); err != nil {
 			return nil, err
 		}
-		up.CreatedAt = parseTime(createdAt)
 		updates = append(updates, &up)
 	}
 	return updates, rows.Err()
