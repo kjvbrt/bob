@@ -39,7 +39,7 @@ func (c Config) Send(to, subject, body string) error {
 	addr := c.Host + ":" + port
 
 	msg := strings.Join([]string{
-		"From: Bob the Tracker <" + c.From + ">",
+		"From: FCC Dataset Request System <" + c.From + ">",
 		"To: " + to,
 		"Subject: " + subject,
 		"Content-Type: text/plain; charset=UTF-8",

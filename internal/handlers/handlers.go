@@ -268,9 +268,9 @@ func (h *Handler) sendStatusEmail(req *models.DatasetRequest, newStatus models.S
 	if !h.emailCfg.Enabled() || req.RequesterEmail == "" {
 		return
 	}
-	subject := fmt.Sprintf("[Bob the Tracker] Request #%d status updated: %s", req.ID, newStatus)
+	subject := fmt.Sprintf("[FCC-DRS] Request #%d status updated: %s", req.ID, newStatus)
 	body := fmt.Sprintf(
-		"Your dataset request \"%s\" (ID: %d) has been updated.\n\nNew status: %s\n\nBob the Tracker — FCC Dataset Request System",
+		"Your dataset request \"%s\" (ID: %d) has been updated.\n\nNew status: %s\n\nFCC Dataset Request System",
 		req.Title, req.ID, req.StatusLabel(),
 	)
 	if err := h.emailCfg.Send(req.RequesterEmail, subject, body); err != nil {
