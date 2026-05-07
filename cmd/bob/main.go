@@ -81,7 +81,11 @@ func main() {
 	mux.HandleFunc("POST /requests/{id}/comments", middleware.RequireAuth(h.AddComment))
 	mux.HandleFunc("DELETE /requests/{id}", middleware.RequireManager(h.DeleteRequest))
 
-	addr := ":8000"
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "5050"
+	}
+	addr := ":" + port
 	slog.Info("server started", "addr", "http://localhost"+addr)
 	if err := http.ListenAndServe(addr, authMW(mux)); err != nil {
 		log.Fatal(err)

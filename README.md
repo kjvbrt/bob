@@ -253,6 +253,7 @@ The database schema is created automatically on first startup. No manual migrati
 | `OIDC_CLIENT_SECRET`| Yes (prod) | CERN Application Portal client secret |
 | `OIDC_REDIRECT_URL` | Yes (prod) | Must be `https://<hostname>/auth/callback` |
 | `MANAGER_USERNAMES` | No  | Comma-separated CERN usernames granted manager role |
+| `PORT`              | No  | HTTP listen port (default `5050`) |
 | `DEV_MODE`          | No  | Set to `TRUE` to bypass CERN SSO (local dev only) |
 | `SQLITE_PATH`       | No  | Override SQLite file path (dev only, default `./data/requests.db`) |
 | `SMTP_HOST`         | No  | SMTP server for email notifications |
