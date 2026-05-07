@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 100 100">
+  <!-- Truck emoji -->
+  <text x="50" y="52" text-anchor="middle" dominant-baseline="central" font-size="74">🚛</text>
+
+  <!-- FCC logo on the trailer side (transparent background) -->
+  <image href="fcc-logo.png" x="44" y="25" width="40" height="16"/>
+</svg>
