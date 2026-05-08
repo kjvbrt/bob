@@ -58,7 +58,7 @@ CERN SSO is bypassed in dev mode. A simple form lets you pick any username and r
 ```bash
 git clone https://github.com/kjvbrt/bob
 cd bob
-DEV_MODE=TRUE go run ./cmd/bob
+DEV_MODE=TRUE go run ./cmd/fcc-drs
 ```
 
 Open **http://localhost:5050**, enter a username, choose a role (requester or manager), and log in.
@@ -67,10 +67,10 @@ Open **http://localhost:5050**, enter a username, choose a role (requester or ma
 
 ```bash
 # Development build (SQLite)
-go build -o bob ./cmd/bob
+go build -o fcc-drs ./cmd/fcc-drs
 
 # Production build (PostgreSQL — for CERN PaaS deployment)
-go build -tags prod -o bob ./cmd/bob
+go build -tags prod -o fcc-drs ./cmd/fcc-drs
 ```
 
 ### Front-end assets
@@ -124,7 +124,7 @@ Role assignment:
 ```
 bob/
 ├── cmd/
-│   └── bob/
+│   └── fcc-drs/
 │       └── main.go               # Server entry point, routing
 ├── internal/
 │   ├── auth/
@@ -212,7 +212,7 @@ stringData:
   database-url: "postgresql://user:password@dbod-host.cern.ch:5432/database?sslmode=require"
   oidc-client-id: "your-client-id"
   oidc-client-secret: "your-client-secret"
-  oidc-redirect-url: "https://bob.web.cern.ch/auth/callback"
+  oidc-redirect-url: "https://fcc-drs.web.cern.ch/auth/callback"
 ```
 
 Edit `openshift/configmap.yaml` with the CERN usernames that should have the manager role:
@@ -222,7 +222,7 @@ data:
   manager-usernames: "jsmith,adoe"
 ```
 
-Edit `openshift/route.yaml` and replace `REPLACE_WITH_HOSTNAME` with your actual hostname (e.g. `bob.web.cern.ch`).
+Edit `openshift/route.yaml` and replace `REPLACE_WITH_HOSTNAME` with your actual hostname (e.g. `fcc-drs.web.cern.ch`).
 
 ### 3. Apply the manifests
 
@@ -238,8 +238,8 @@ oc apply -f openshift/route.yaml
 
 ```bash
 oc get pods        # pod should reach Running state
-oc get route bob   # shows the public URL
-oc logs -f deployment/bob  # tail logs
+oc get route fcc-drs   # shows the public URL
+oc logs -f deployment/fcc-drs  # tail logs
 ```
 
 The database schema is created automatically on first startup. No manual migration step is required.

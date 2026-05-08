@@ -1,12 +1,12 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: bob
+  name: fcc-drs
   labels:
-    app: bob
+    app: fcc-drs
 spec:
   selector:
-    app: bob
+    app: fcc-drs
   ports:
     - port: 5050
       targetPort: 5050

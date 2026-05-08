@@ -72,7 +72,7 @@ Responsive design. Dark / light / system theme.
 ```bash
 # Local dev — no CERN account needed
 git clone https://github.com/kjvbrt/bob && cd bob
-DEV_MODE=TRUE go run ./cmd/bob
+DEV_MODE=TRUE go run ./cmd/fcc-drs
 # → open http://localhost:5050, pick a username and role
 ```
 
@@ -81,7 +81,7 @@ DEV_MODE=TRUE go run ./cmd/bob
 export OIDC_CLIENT_ID=...      OIDC_CLIENT_SECRET=...
 export OIDC_REDIRECT_URL=https://your-host/auth/callback
 export MANAGER_USERNAMES=jsmith,adoe
-go build -o bob ./cmd/bob && ./bob
+go build -o fcc-drs ./cmd/fcc-drs && ./fcc-drs
 ```
 
 ---

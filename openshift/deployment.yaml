@@ -1,23 +1,23 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: bob
+  name: fcc-drs
   labels:
-    app: bob
+    app: fcc-drs
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: bob
+      app: fcc-drs
   template:
     metadata:
       labels:
-        app: bob
+        app: fcc-drs
     spec:
       containers:
-        - name: bob
+        - name: fcc-drs
           # Replace with your CERN GitLab registry image, e.g.:
-          # gitlab-registry.cern.ch/<group>/bob:latest
+          # gitlab-registry.cern.ch/<group>/fcc-drs:latest
           image: REPLACE_WITH_IMAGE
           ports:
             - containerPort: 5050
@@ -25,27 +25,27 @@ spec:
             - name: DATABASE_URL
               valueFrom:
                 secretKeyRef:
-                  name: bob-secrets
+                  name: fcc-drs-secrets
                   key: database-url
             - name: OIDC_CLIENT_ID
               valueFrom:
                 secretKeyRef:
-                  name: bob-secrets
+                  name: fcc-drs-secrets
                   key: oidc-client-id
             - name: OIDC_CLIENT_SECRET
               valueFrom:
                 secretKeyRef:
-                  name: bob-secrets
+                  name: fcc-drs-secrets
                   key: oidc-client-secret
             - name: OIDC_REDIRECT_URL
               valueFrom:
                 secretKeyRef:
-                  name: bob-secrets
+                  name: fcc-drs-secrets
                   key: oidc-redirect-url
             - name: MANAGER_USERNAMES
               valueFrom:
                 configMapKeyRef:
-                  name: bob-config
+                  name: fcc-drs-config
                   key: manager-usernames
           readinessProbe:
             httpGet:

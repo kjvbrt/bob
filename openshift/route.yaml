@@ -1,15 +1,15 @@
 apiVersion: route.openshift.io/v1
 kind: Route
 metadata:
-  name: bob
+  name: fcc-drs
   labels:
-    app: bob
+    app: fcc-drs
 spec:
-  # Replace with your actual hostname, e.g. bob.web.cern.ch
+  # Replace with your actual hostname, e.g. fcc-drs.web.cern.ch
   host: REPLACE_WITH_HOSTNAME
   to:
     kind: Service
-    name: bob
+    name: fcc-drs
   port:
     targetPort: 5050
   tls:
