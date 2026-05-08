@@ -4,7 +4,7 @@ A web-based dataset request tracking system for centrally produced datasets
 used in analysis, detector design studies, and other physics related areas at
 the [Future Circular Collider (FCC)](https://fcc.web.cern.ch/).
 
-Bob keeps an eye on the dataset needs of the community around the FCC and makes
+FCC-DRS keeps an eye on the dataset needs of the community around the FCC and makes
 sure nothing falls through the cracks.
 
 <p align="center"><img src="static/logo.png" alt="FCC Dataset Request System logo" width="160"/></p>
@@ -56,8 +56,8 @@ Single binary, no CGO required. No external CDN dependencies at runtime.
 CERN SSO is bypassed in dev mode. A simple form lets you pick any username and role — no credentials required.
 
 ```bash
-git clone https://github.com/kjvbrt/bob
-cd bob
+git clone https://github.com/kjvbrt/fcc-drs
+cd fcc-drs
 DEV_MODE=TRUE go run ./cmd/fcc-drs
 ```
 
@@ -96,7 +96,7 @@ export SMTP_HOST=smtp.cern.ch
 export SMTP_PORT=587
 export SMTP_USER=your-username
 export SMTP_PASS=your-password
-export SMTP_FROM=bob@cern.ch
+export SMTP_FROM=fcc-drs@cern.ch
 ```
 
 If not set, email is silently disabled.
@@ -122,7 +122,7 @@ Role assignment:
 ## Project Structure
 
 ```
-bob/
+fcc-drs/
 ├── cmd/
 │   └── fcc-drs/
 │       └── main.go               # Server entry point, routing
@@ -184,7 +184,7 @@ bob/
 
 ## Deployment (CERN PaaS / OpenShift)
 
-Bob runs on [CERN PaaS](https://paas.cern.ch) (OpenShift) with a PostgreSQL database provided by the [CERN DBOD](https://dbod.web.cern.ch) service.
+FCC-DRS runs on [CERN PaaS](https://paas.cern.ch) (OpenShift) with a PostgreSQL database provided by the [CERN DBOD](https://dbod.web.cern.ch) service.
 
 ### Prerequisites
 
@@ -197,8 +197,8 @@ Bob runs on [CERN PaaS](https://paas.cern.ch) (OpenShift) with a PostgreSQL data
 The production build uses the `prod` build tag, which enables PostgreSQL and disables SQLite.
 
 ```bash
-docker build -t gitlab-registry.cern.ch/<your-group>/bob:latest .
-docker push gitlab-registry.cern.ch/<your-group>/bob:latest
+docker build -t gitlab-registry.cern.ch/<your-group>/fcc-drs:latest .
+docker push gitlab-registry.cern.ch/<your-group>/fcc-drs:latest
 ```
 
 Update `openshift/deployment.yaml` with your image path.
@@ -304,7 +304,7 @@ Requester identity (name, username, email) is populated automatically from CERN 
 ## Contact & Support
 
 - **General questions**: [FCC-PED-SoftwareAndComputing-MCProduction@cern.ch](mailto:FCC-PED-SoftwareAndComputing-MCProduction@cern.ch)
-- **Platform issues & feature requests**: [github.com/kjvbrt/bob/issues](https://github.com/kjvbrt/bob/issues)
+- **Platform issues & feature requests**: [github.com/kjvbrt/fcc-drs/issues](https://github.com/kjvbrt/fcc-drs/issues)
 
 ---
 
