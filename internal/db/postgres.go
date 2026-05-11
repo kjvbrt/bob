@@ -96,6 +96,15 @@ func migrate(db *DB) error {
 			RETURN NEW;
 		END;
 		$$ LANGUAGE plpgsql`,
+		`CREATE TABLE IF NOT EXISTS request_relations (
+			id         SERIAL PRIMARY KEY,
+			from_id    INTEGER NOT NULL REFERENCES dataset_requests(id) ON DELETE CASCADE,
+			to_id      INTEGER NOT NULL REFERENCES dataset_requests(id) ON DELETE CASCADE,
+			type       TEXT NOT NULL DEFAULT 'related',
+			created_by INTEGER REFERENCES users(id),
+			created_at TIMESTAMPTZ DEFAULT NOW(),
+			UNIQUE(from_id, to_id, type)
+		)`,
 		`ALTER TABLE dataset_requests ADD COLUMN IF NOT EXISTS statistics TEXT DEFAULT ''`,
 		`ALTER TABLE dataset_requests ADD COLUMN IF NOT EXISTS target_campaign TEXT DEFAULT ''`,
 		`ALTER TABLE dataset_requests ADD COLUMN IF NOT EXISTS key4hep_stack TEXT DEFAULT ''`,

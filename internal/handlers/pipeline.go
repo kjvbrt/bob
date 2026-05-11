@@ -47,6 +47,7 @@ func (h *Handler) AddComment(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Internal Server Error", 500)
 		return
 	}
+	h.relations.CreateMentions(id, userID, body)
 
 	req, _ := h.requests.GetByID(id)
 	stages, _ := h.updates.GetByRequestID(id)

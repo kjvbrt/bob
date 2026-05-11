@@ -276,17 +276,21 @@
       throwOnError: false
     };
 
-    function renderMd(root) {
+    function linkRequestRefs(text) {
+      return text.replace(/#(\d+)\b/g, '[#$1](/requests/$1)');
+    }
+
+function renderMd(root) {
       if (typeof marked === 'undefined' || typeof renderMathInElement === 'undefined') return;
       root = root || document;
       root.querySelectorAll('[data-md]:not([data-rendered])').forEach(function(el) {
         el.setAttribute('data-rendered', '');
-        el.innerHTML = marked.parse(el.textContent);
+        el.innerHTML = marked.parse(linkRequestRefs(el.textContent));
         renderMathInElement(el, mathOpts);
       });
       root.querySelectorAll('[data-md-inline]:not([data-rendered])').forEach(function(el) {
         el.setAttribute('data-rendered', '');
-        el.innerHTML = marked.parseInline(el.textContent);
+        el.innerHTML = marked.parseInline(linkRequestRefs(el.textContent));
         renderMathInElement(el, mathOpts);
       });
     }

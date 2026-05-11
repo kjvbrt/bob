@@ -101,6 +101,16 @@ func migrate(db *DB) error {
 			created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 		);
 
+		CREATE TABLE IF NOT EXISTS request_relations (
+			id         INTEGER PRIMARY KEY AUTOINCREMENT,
+			from_id    INTEGER NOT NULL REFERENCES dataset_requests(id) ON DELETE CASCADE,
+			to_id      INTEGER NOT NULL REFERENCES dataset_requests(id) ON DELETE CASCADE,
+			type       TEXT NOT NULL DEFAULT 'related',
+			created_by INTEGER REFERENCES users(id),
+			created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+			UNIQUE(from_id, to_id, type)
+		);
+
 		CREATE TRIGGER IF NOT EXISTS update_timestamp
 		AFTER UPDATE ON dataset_requests
 		BEGIN

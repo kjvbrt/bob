@@ -79,6 +79,8 @@ func main() {
 	mux.HandleFunc("POST /requests/{id}/priority", middleware.RequireManager(h.UpdatePriority))
 	mux.HandleFunc("POST /requests/{id}/assign", middleware.RequireManager(h.AssignRequest))
 	mux.HandleFunc("POST /requests/{id}/comments", middleware.RequireAuth(h.AddComment))
+	mux.HandleFunc("POST /requests/{id}/relations", middleware.RequireAuth(h.AddRelation))
+	mux.HandleFunc("DELETE /requests/{id}/relations/{rel_id}", middleware.RequireAuth(h.RemoveRelation))
 	mux.HandleFunc("DELETE /requests/{id}", middleware.RequireManager(h.DeleteRequest))
 
 	port := os.Getenv("PORT")

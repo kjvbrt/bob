@@ -19,7 +19,8 @@ import (
 type Handler struct {
 	requests  *models.RequestStore
 	users     *models.UserStore
-	updates    *models.UpdateStore
+	updates   *models.UpdateStore
+	relations *models.RelationStore
 	oidc      *auth.Client
 	funcMap   template.FuncMap
 	devMode   bool
@@ -31,13 +32,15 @@ func New(db *sql.DB, driver string, oidcClient *auth.Client, devMode bool) *Hand
 		requests:  models.NewRequestStore(db, driver),
 		users:     models.NewUserStore(db, driver),
 		updates:   models.NewUpdateStore(db, driver),
+		relations: models.NewRelationStore(db, driver),
 		oidc:      oidcClient,
 		devMode:   devMode,
 		emailCfg:  email.ConfigFromEnv(),
 	}
 	h.funcMap = template.FuncMap{
-		"useCaseLabels":    func() []models.Option { return models.UseCaseLabels },
-		"datasetTypeLabels": func() []models.Option { return models.DatasetTypeLabels },
+		"useCaseLabels":        func() []models.Option { return models.UseCaseLabels },
+		"datasetTypeLabels":    func() []models.Option { return models.DatasetTypeLabels },
+		"relationTypeLabels":   func() []models.Option { return models.RelationTypeLabels },
 		"statusClass":    statusClass,
 		"priorityClass":  priorityClass,
 		"truncate":       truncate,
@@ -223,6 +226,7 @@ type PageData struct {
 	DevMode     bool
 	Updates     []*models.Update
 	Managers    []*models.User
+	Relations   []*models.Relation
 	IsPage      bool // true when rendered as a standalone page, not a modal fragment
 }
 
@@ -441,6 +445,7 @@ func (h *Handler) CreateRequest(w http.ResponseWriter, r *http.Request) {
 		userName = user.DisplayName
 	}
 	h.updates.Add(int(id), createdBy, models.UpdateCreated, "Request submitted by "+userName)
+	h.relations.CreateMentions(int(id), createdBy, req.Description, req.Notes)
 
 	w.Header().Set("HX-Redirect", "/requests")
 	w.WriteHeader(http.StatusOK)
@@ -465,15 +470,16 @@ func (h *Handler) GetRequest(w http.ResponseWriter, r *http.Request) {
 
 	activity, _ := h.updates.GetByRequestID(id)
 	managers, _ := h.users.GetManagers()
+	relations, _ := h.relations.GetByRequestID(id)
 
 	if r.Header.Get("HX-Request") == "true" {
 		h.renderPartial(w, r, "request_detail", PageData{
-			Request: req, Updates: activity, Managers: managers,
+			Request: req, Updates: activity, Managers: managers, Relations: relations,
 		})
 		return
 	}
 	h.renderPage(w, r, "request_detail_page", PageData{
-		Title: req.Title, Request: req, Updates: activity, Managers: managers, IsPage: true,
+		Title: req.Title, Request: req, Updates: activity, Managers: managers, Relations: relations, IsPage: true,
 	})
 }
 
@@ -557,6 +563,12 @@ func (h *Handler) UpdateRequest(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Internal Server Error", 500)
 		return
 	}
+
+	userID := 0
+	if user != nil {
+		userID = user.ID
+	}
+	h.relations.CreateMentions(id, userID, req.Description, req.Notes)
 
 	w.Header().Set("HX-Redirect", "/requests/"+strconv.Itoa(id))
 	w.WriteHeader(http.StatusOK)

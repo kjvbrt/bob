@@ -209,6 +209,10 @@
                 class="form-input resize-none">{{if .Request}}{{.Request.Notes}}{{end}}</textarea>
     </div>
 
+    {{if not .Request}}
+    <p class="text-xs text-stone-400 dark:text-stone-500">You can link related requests after creation from the request detail page.</p>
+    {{end}}
+
     <!-- Actions -->
     <div class="flex items-center justify-end gap-3 pt-2">
       <button type="button" onclick="closeModal()"
