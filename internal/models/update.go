@@ -51,7 +51,7 @@ func (us *UpdateStore) Add(requestID, userID int, updateType UpdateType, body st
 		uid = userID
 	}
 	_, err := us.db.Exec(
-		us.rebind(`INSERT INTO request_events (request_id, user_id, type, body) VALUES (?, ?, ?, ?)`),
+		us.rebind(`INSERT INTO request_activity (request_id, user_id, type, body) VALUES (?, ?, ?, ?)`),
 		requestID, uid, updateType, body,
 	)
 	if err != nil {
@@ -67,7 +67,7 @@ func (us *UpdateStore) GetByRequestID(requestID int) ([]*Update, error) {
 		SELECT e.id, e.request_id, COALESCE(e.user_id, 0),
 		       COALESCE(u.username, ''), COALESCE(u.display_name, 'System'),
 		       e.type, e.body, e.created_at
-		FROM request_events e
+		FROM request_activity e
 		LEFT JOIN users u ON u.id = e.user_id
 		WHERE e.request_id = ?
 		ORDER BY e.created_at ASC`), requestID)

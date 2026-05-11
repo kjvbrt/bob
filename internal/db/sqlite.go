@@ -42,6 +42,9 @@ func migrate(db *DB) error {
 	db.Exec(`ALTER TABLE users RENAME COLUMN cern_username TO username`)
 	db.Exec(`ALTER TABLE dataset_requests ADD COLUMN physics_approval TEXT NOT NULL DEFAULT ''`)
 	db.Exec(`ALTER TABLE dataset_requests ADD COLUMN resources_approval TEXT NOT NULL DEFAULT ''`)
+	db.Exec(`ALTER TABLE dataset_requests ADD COLUMN statistics TEXT NOT NULL DEFAULT ''`)
+	db.Exec(`ALTER TABLE dataset_requests ADD COLUMN target_campaign TEXT NOT NULL DEFAULT ''`)
+	db.Exec(`ALTER TABLE dataset_requests ADD COLUMN key4hep_stack TEXT NOT NULL DEFAULT ''`)
 
 	_, err := db.Exec(`
 		CREATE TABLE IF NOT EXISTS users (
@@ -74,6 +77,9 @@ func migrate(db *DB) error {
 			status             TEXT DEFAULT 'pending',
 			priority           TEXT DEFAULT 'medium',
 			estimated_size     TEXT DEFAULT '',
+			statistics         TEXT DEFAULT '',
+			target_campaign    TEXT DEFAULT '',
+			key4hep_stack      TEXT DEFAULT '',
 			format             TEXT DEFAULT '',
 			due_date           TEXT DEFAULT '',
 			notes              TEXT DEFAULT '',
@@ -86,7 +92,7 @@ func migrate(db *DB) error {
 			updated_at         DATETIME DEFAULT CURRENT_TIMESTAMP
 		);
 
-		CREATE TABLE IF NOT EXISTS request_events (
+		CREATE TABLE IF NOT EXISTS request_activity (
 			id         INTEGER PRIMARY KEY AUTOINCREMENT,
 			request_id INTEGER NOT NULL REFERENCES dataset_requests(id) ON DELETE CASCADE,
 			user_id    INTEGER REFERENCES users(id),

@@ -59,34 +59,10 @@
       <span class="ml-auto shrink-0 text-[10px] font-medium text-stone-400 uppercase tracking-wide">CERN SSO</span>
     </div>
 
-    <!-- Use case + Dataset Stage -->
+    <!-- Physics/SW Group + Use Case -->
     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
       <div>
-        <label class="form-label">Use Case <span class="text-red-500">*</span></label>
-        <select name="use_case" required class="form-input">
-          {{$uc := ""}}{{if .Request}}{{$uc = .Request.UseCase}}{{end}}
-          <option value="" {{if eq $uc ""}}selected{{end}} disabled>— Select use case —</option>
-          {{range useCaseLabels}}
-          <option value="{{.Value}}" {{if eq $uc .Value}}selected{{end}}>{{.Label}}</option>
-          {{end}}
-        </select>
-      </div>
-      <div>
-        <label class="form-label">Dataset Stage <span class="text-red-500">*</span></label>
-        <select name="dataset_type" required class="form-input">
-          {{$dt := ""}}{{if .Request}}{{$dt = .Request.DatasetType}}{{end}}
-          <option value="" {{if eq $dt ""}}selected{{end}} disabled>— Select stage —</option>
-          {{range datasetTypeLabels}}
-          <option value="{{.Value}}" {{if eq $dt .Value}}selected{{end}}>{{.Label}}</option>
-          {{end}}
-        </select>
-      </div>
-    </div>
-
-    <!-- Working group + Format -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-      <div>
-        <label class="form-label">Physics or Software Group / Team <span class="text-red-500">*</span></label>
+        <label class="form-label">Group / Team <span class="text-red-500">*</span></label>
         {{$dept := ""}}{{if .Request}}{{$dept = .Request.Department}}{{end}}
         <select name="department" required class="form-input">
           <option value="" {{if eq $dept ""}}selected{{end}} disabled>— Select group or team —</option>
@@ -121,7 +97,31 @@
         </select>
       </div>
       <div>
-        <label class="form-label">Format Needed <span class="text-red-500">*</span></label>
+        <label class="form-label">Use Case <span class="text-red-500">*</span></label>
+        <select name="use_case" required class="form-input">
+          {{$uc := ""}}{{if .Request}}{{$uc = .Request.UseCase}}{{end}}
+          <option value="" {{if eq $uc ""}}selected{{end}} disabled>— Select use case —</option>
+          {{range useCaseLabels}}
+          <option value="{{.Value}}" {{if eq $uc .Value}}selected{{end}}>{{.Label}}</option>
+          {{end}}
+        </select>
+      </div>
+    </div>
+
+    <!-- Final Processing Stage + Format -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <div>
+        <label class="form-label">Final Processing Stage <span class="text-red-500">*</span></label>
+        <select name="dataset_type" required class="form-input">
+          {{$dt := ""}}{{if .Request}}{{$dt = .Request.DatasetType}}{{end}}
+          <option value="" {{if eq $dt ""}}selected{{end}} disabled>— Select stage —</option>
+          {{range datasetTypeLabels}}
+          <option value="{{.Value}}" {{if eq $dt .Value}}selected{{end}}>{{.Label}}</option>
+          {{end}}
+        </select>
+      </div>
+      <div>
+        <label class="form-label">Format <span class="text-red-500">*</span></label>
         {{$fmt := ""}}{{if .Request}}{{$fmt = .Request.Format}}{{end}}
         <select name="format" required class="form-input">
           <option value="" {{if eq $fmt ""}}selected{{end}} disabled>— Select format —</option>
@@ -137,31 +137,58 @@
       </div>
     </div>
 
-    <!-- Priority -->
-    <div>
-      <label class="form-label">Priority</label>
-      <select name="priority" class="form-input">
-        <option value="low"      {{if .Request}}{{if eq .Request.Priority "low"}}selected{{end}}{{end}}>Low</option>
-        <option value="medium"   {{if .Request}}{{if eq .Request.Priority "medium"}}selected{{end}}{{else}}selected{{end}}>Medium</option>
-        <option value="high"     {{if .Request}}{{if eq .Request.Priority "high"}}selected{{end}}{{end}}>High</option>
-        <option value="critical" {{if .Request}}{{if eq .Request.Priority "critical"}}selected{{end}}{{end}}>Critical</option>
-      </select>
-    </div>
-
-    <!-- Est. size + Due date -->
+    <!-- Statistics + Est. size -->
     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
       <div>
-        <label class="form-label">Statistics / Estimated Size <span class="text-red-500">*</span></label>
-        <input type="text" name="estimated_size" required
-               value="{{if .Request}}{{.Request.EstimatedSize}}{{end}}"
-               placeholder="e.g. 10M events, 500 GB"
+        <label class="form-label">Statistics <span class="text-red-500">*</span></label>
+        <input type="text" name="statistics" required
+               value="{{if .Request}}{{.Request.Statistics}}{{end}}"
+               placeholder="e.g. 10M events"
                class="form-input"/>
       </div>
+      <div>
+        <label class="form-label">Estimated Size <span class="text-red-500">*</span></label>
+        <input type="text" name="estimated_size" required
+               value="{{if .Request}}{{.Request.EstimatedSize}}{{end}}"
+               placeholder="e.g. 500 GB"
+               class="form-input"/>
+      </div>
+    </div>
+
+    <!-- Target Campaign + Key4hep Stack -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <div>
+        <label class="form-label">Target Campaign</label>
+        <input type="text" name="target_campaign"
+               value="{{if .Request}}{{.Request.TargetCampaign}}{{end}}"
+               placeholder="e.g. Spring2026"
+               class="form-input"/>
+      </div>
+      <div>
+        <label class="form-label">Key4hep Stack</label>
+        <input type="text" name="key4hep_stack"
+               value="{{if .Request}}{{.Request.Key4hepStack}}{{end}}"
+               placeholder="e.g. key4hep-2024-03-10"
+               class="form-input"/>
+      </div>
+    </div>
+
+    <!-- Due Date + Priority -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
       <div>
         <label class="form-label">Due Date</label>
         <input type="date" name="due_date"
                value="{{if .Request}}{{.Request.DueDate}}{{end}}"
                class="form-input"/>
+      </div>
+      <div>
+        <label class="form-label">Priority</label>
+        <select name="priority" class="form-input">
+          <option value="low"      {{if .Request}}{{if eq .Request.Priority "low"}}selected{{end}}{{end}}>Low</option>
+          <option value="medium"   {{if .Request}}{{if eq .Request.Priority "medium"}}selected{{end}}{{else}}selected{{end}}>Medium</option>
+          <option value="high"     {{if .Request}}{{if eq .Request.Priority "high"}}selected{{end}}{{end}}>High</option>
+          <option value="critical" {{if .Request}}{{if eq .Request.Priority "critical"}}selected{{end}}{{end}}>Critical</option>
+        </select>
       </div>
     </div>
 
@@ -176,7 +203,7 @@
 
     <!-- Notes -->
     <div>
-      <label class="form-label">Notes</label>
+      <label class="form-label">Additional Notes</label>
       <textarea name="notes" rows="2"
                 placeholder="Generator settings, beam energy, pile-up conditions, special requirements…"
                 class="form-input resize-none">{{if .Request}}{{.Request.Notes}}{{end}}</textarea>

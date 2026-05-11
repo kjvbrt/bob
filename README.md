@@ -287,16 +287,15 @@ Requester identity (name, username, email) is populated automatically from CERN 
 ## ToDo
 
 * Validation plots generation
-* Dataset final stage
-* Key4hep release
 * MC Generator Card upload
 * Extensions:
   * Extend the existing production (number of events)
   * Continue along the event processing chain
   * Extend number of targeted detectors
-* Statistics and size should be separated
-* Add Delphes as a stage
+* Add Accelerator
 * Field to specify detector option and version
+* Make campaign and Key4hep stack drop down, where one of them is required to be
+    specified
 
 
 ---

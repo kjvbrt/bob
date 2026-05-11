@@ -85,6 +85,14 @@
   </div>
   {{end}}
 
+  {{if .TagList}}
+  <div class="mb-5">
+    <div class="flex flex-wrap gap-1.5">
+      {{range .TagList}}<span class="tag">{{.}}</span>{{end}}
+    </div>
+  </div>
+  {{end}}
+
   <!-- Parallel approval tracks (always visible for managers on non-draft requests; visible to others when a decision exists) -->
   {{if and (ne .Status "draft") (or $d.CurrentUser.IsManager (ne .PhysicsApproval "") (ne .ResourcesApproval ""))}}
   <div class="mb-5">
@@ -172,32 +180,34 @@
   {{end}}
 
   <!-- Meta grid -->
+  <span class="detail-label block mb-2">Request Details</span>
   <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-5">
-    <div class="detail-item">
-      <span class="detail-label">Requester</span>
-      <span class="detail-value font-medium">{{.RequesterName}}</span>
-      {{if .RequesterEmail}}<a href="mailto:{{.RequesterEmail}}" class="text-xs text-indigo-500 hover:underline block">{{.RequesterEmail}}</a>{{end}}
-    </div>
     {{if .Department}}
     <div class="detail-item">
       <span class="detail-label">Group / Team</span>
       <span class="detail-value">{{.Department}}</span>
     </div>
     {{end}}
-    <div class="detail-item">
-      <span class="detail-label">Dataset Stage</span>
-      <span class="detail-value">{{.DatasetTypeLabel}}</span>
-    </div>
     {{if .UseCase}}
     <div class="detail-item">
       <span class="detail-label">Use Case</span>
       <span class="detail-value">{{.UseCaseLabel}}</span>
     </div>
     {{end}}
+    <div class="detail-item">
+      <span class="detail-label">Final Processing Stage</span>
+      <span class="detail-value">{{.DatasetTypeLabel}}</span>
+    </div>
     {{if .Format}}
     <div class="detail-item">
       <span class="detail-label">Format</span>
       <span class="detail-value">{{.Format}}</span>
+    </div>
+    {{end}}
+    {{if .Statistics}}
+    <div class="detail-item">
+      <span class="detail-label">Statistics</span>
+      <span class="detail-value">{{.Statistics}}</span>
     </div>
     {{end}}
     {{if .EstimatedSize}}
@@ -206,47 +216,57 @@
       <span class="detail-value">{{.EstimatedSize}}</span>
     </div>
     {{end}}
+    {{if .TargetCampaign}}
+    <div class="detail-item">
+      <span class="detail-label">Target Campaign</span>
+      <span class="detail-value">{{.TargetCampaign}}</span>
+    </div>
+    {{end}}
+    {{if .Key4hepStack}}
+    <div class="detail-item">
+      <span class="detail-label">Key4hep Stack</span>
+      <span class="detail-value">{{.Key4hepStack}}</span>
+    </div>
+    {{end}}
     {{if .DueDate}}
     <div class="detail-item">
       <span class="detail-label">Due Date</span>
       <span class="detail-value">{{.DueDate}}</span>
     </div>
     {{end}}
-    <div class="detail-item">
-      <span class="detail-label">Created</span>
-      <span class="detail-value">{{formatDateTime .CreatedAt}}</span>
-    </div>
-    <div class="detail-item">
-      <span class="detail-label">Last Updated</span>
-      <span class="detail-value">{{formatDateTime .UpdatedAt}}</span>
-    </div>
   </div>
-
-  {{if .TagList}}
-  <div class="mb-5">
-    <span class="detail-label block mb-1.5">Tags</span>
-    <div class="flex flex-wrap gap-1.5">
-      {{range .TagList}}<span class="tag">{{.}}</span>{{end}}
-    </div>
-  </div>
-  {{end}}
 
   {{if .Notes}}
   <div class="mb-5">
-    <span class="detail-label block mb-1.5">Notes</span>
+    <span class="detail-label block mb-1.5">Additional Notes</span>
     <div class="bg-amber-50 dark:bg-amber-950/30 border border-amber-100 dark:border-amber-900/50 rounded-xl p-3">
       <p class="text-sm text-stone-700 dark:text-stone-300 leading-relaxed">{{.Notes}}</p>
     </div>
   </div>
   {{end}}
 
-  <!-- Assignment -->
-  <div class="mb-5">
-    {{template "assignment" $d}}
+  <!-- People + Timestamps -->
+  <div class="border-t border-stone-100 dark:border-stone-800 pt-4 mb-5">
+    <div class="grid grid-cols-2 gap-x-6 gap-y-4">
+      <div>
+        <span class="text-[10px] font-semibold text-stone-400 dark:text-stone-500 uppercase tracking-wide block mb-0.5">Requester</span>
+        <span class="text-sm text-stone-700 dark:text-stone-300 font-medium">{{.RequesterName}}</span>
+        {{if .RequesterEmail}}<a href="mailto:{{.RequesterEmail}}" class="text-xs text-indigo-500 hover:underline block">{{.RequesterEmail}}</a>{{end}}
+      </div>
+      {{template "assignment" $d}}
+      <div>
+        <span class="text-[10px] font-semibold text-stone-400 dark:text-stone-500 uppercase tracking-wide block mb-0.5">Created</span>
+        <span class="text-sm text-stone-500 dark:text-stone-400">{{formatDateTime .CreatedAt}}</span>
+      </div>
+      <div>
+        <span class="text-[10px] font-semibold text-stone-400 dark:text-stone-500 uppercase tracking-wide block mb-0.5">Last Updated</span>
+        <span class="text-sm text-stone-500 dark:text-stone-400">{{formatDateTime .UpdatedAt}}</span>
+      </div>
+    </div>
   </div>
 
   <!-- Actions -->
-  <div class="flex items-center justify-between pt-4 border-t border-stone-100 dark:border-stone-800">
+  <div class="flex items-center justify-between pt-4">
     <div class="flex items-center gap-2">
       {{if $d.CurrentUser.IsManager}}
       <button
@@ -304,7 +324,7 @@
   </div>
 
   <!-- Activity / comments -->
-  {{template "events" $d}}
+  {{template "activity" $d}}
 
 </div>
 {{end}}

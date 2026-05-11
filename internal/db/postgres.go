@@ -67,6 +67,9 @@ func migrate(db *DB) error {
 			status             TEXT DEFAULT 'pending',
 			priority           TEXT DEFAULT 'medium',
 			estimated_size     TEXT DEFAULT '',
+			statistics         TEXT DEFAULT '',
+			target_campaign    TEXT DEFAULT '',
+			key4hep_stack      TEXT DEFAULT '',
 			format             TEXT DEFAULT '',
 			due_date           TEXT DEFAULT '',
 			notes              TEXT DEFAULT '',
@@ -78,7 +81,7 @@ func migrate(db *DB) error {
 			created_at         TIMESTAMPTZ DEFAULT NOW(),
 			updated_at         TIMESTAMPTZ DEFAULT NOW()
 		)`,
-		`CREATE TABLE IF NOT EXISTS request_events (
+		`CREATE TABLE IF NOT EXISTS request_activity (
 			id         SERIAL PRIMARY KEY,
 			request_id INTEGER NOT NULL REFERENCES dataset_requests(id) ON DELETE CASCADE,
 			user_id    INTEGER REFERENCES users(id),
@@ -93,6 +96,9 @@ func migrate(db *DB) error {
 			RETURN NEW;
 		END;
 		$$ LANGUAGE plpgsql`,
+		`ALTER TABLE dataset_requests ADD COLUMN IF NOT EXISTS statistics TEXT DEFAULT ''`,
+		`ALTER TABLE dataset_requests ADD COLUMN IF NOT EXISTS target_campaign TEXT DEFAULT ''`,
+		`ALTER TABLE dataset_requests ADD COLUMN IF NOT EXISTS key4hep_stack TEXT DEFAULT ''`,
 		`DROP TRIGGER IF EXISTS update_timestamp ON dataset_requests`,
 		`CREATE TRIGGER update_timestamp
 			BEFORE UPDATE ON dataset_requests

@@ -408,6 +408,9 @@ func (h *Handler) CreateRequest(w http.ResponseWriter, r *http.Request) {
 		Status:            status,
 		Priority:          priority,
 		EstimatedSize:     strings.TrimSpace(r.FormValue("estimated_size")),
+		Statistics:        strings.TrimSpace(r.FormValue("statistics")),
+		TargetCampaign:    strings.TrimSpace(r.FormValue("target_campaign")),
+		Key4hepStack:      strings.TrimSpace(r.FormValue("key4hep_stack")),
 		Format:            strings.TrimSpace(r.FormValue("format")),
 		DueDate:           r.FormValue("due_date"),
 		Notes:             strings.TrimSpace(r.FormValue("notes")),
@@ -460,17 +463,17 @@ func (h *Handler) GetRequest(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	events, _ := h.updates.GetByRequestID(id)
+	activity, _ := h.updates.GetByRequestID(id)
 	managers, _ := h.users.GetManagers()
 
 	if r.Header.Get("HX-Request") == "true" {
 		h.renderPartial(w, r, "request_detail", PageData{
-			Request: req, Updates: events, Managers: managers,
+			Request: req, Updates: activity, Managers: managers,
 		})
 		return
 	}
 	h.renderPage(w, r, "request_detail_page", PageData{
-		Title: req.Title, Request: req, Updates: events, Managers: managers, IsPage: true,
+		Title: req.Title, Request: req, Updates: activity, Managers: managers, IsPage: true,
 	})
 }
 
@@ -540,6 +543,9 @@ func (h *Handler) UpdateRequest(w http.ResponseWriter, r *http.Request) {
 		Status:            existing.Status,
 		Priority:          models.Priority(r.FormValue("priority")),
 		EstimatedSize:     strings.TrimSpace(r.FormValue("estimated_size")),
+		Statistics:        strings.TrimSpace(r.FormValue("statistics")),
+		TargetCampaign:    strings.TrimSpace(r.FormValue("target_campaign")),
+		Key4hepStack:      strings.TrimSpace(r.FormValue("key4hep_stack")),
 		Format:            strings.TrimSpace(r.FormValue("format")),
 		DueDate:           r.FormValue("due_date"),
 		Notes:             strings.TrimSpace(r.FormValue("notes")),

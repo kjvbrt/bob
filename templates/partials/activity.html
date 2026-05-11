@@ -1,6 +1,6 @@
-{{define "events"}}
+{{define "activity"}}
 {{$cu := .CurrentUser}}
-<div id="events-area" class="mt-6 border-t border-stone-100 dark:border-stone-800 pt-5">
+<div id="activity-area" class="mt-6 border-t border-stone-100 dark:border-stone-800 pt-5">
   <h3 class="text-xs font-semibold text-stone-400 uppercase tracking-wide mb-4">Activity</h3>
 
   <div class="space-y-2 mb-5">
@@ -37,7 +37,7 @@
 
   <!-- Comment form -->
   <form hx-post="/requests/{{.Request.ID}}/comments"
-        hx-target="#events-area"
+        hx-target="#activity-area"
         hx-swap="outerHTML"
         class="space-y-2">
     <textarea name="body" rows="2" required

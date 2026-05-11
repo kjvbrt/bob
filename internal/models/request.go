@@ -29,6 +29,7 @@ var UseCaseLabels = []Option{
 var DatasetTypeLabels = []Option{
 	{"generation", "Generation"},
 	{"simulation", "Simulation"},
+	{"delphes", "Delphes"},
 	{"reconstruction", "Reconstruction"},
 	{"other", "Other"},
 }
@@ -63,6 +64,9 @@ type DatasetRequest struct {
 	Status            Status
 	Priority          Priority
 	EstimatedSize     string
+	Statistics        string
+	TargetCampaign    string
+	Key4hepStack      string
 	Format            string
 	DueDate           string
 	Notes             string
@@ -176,7 +180,7 @@ func NewRequestStore(db *sql.DB, driver string) *RequestStore {
 const selectCols = `
 	dr.id, dr.title, dr.description, dr.requester_name, dr.requester_username, dr.requester_email,
 	dr.department, dr.dataset_type, dr.use_case, dr.status, dr.priority, dr.estimated_size,
-	dr.format, dr.due_date, dr.notes, dr.tags, COALESCE(dr.created_by,0),
+	COALESCE(dr.statistics,''), COALESCE(dr.target_campaign,''), COALESCE(dr.key4hep_stack,''), dr.format, dr.due_date, dr.notes, dr.tags, COALESCE(dr.created_by,0),
 	COALESCE(dr.assigned_to,0), COALESCE(au.display_name,''),
 	COALESCE(dr.physics_approval,''), COALESCE(dr.resources_approval,''),
 	dr.created_at, dr.updated_at`
@@ -300,13 +304,13 @@ func (r *RequestStore) Create(req *DatasetRequest) (int64, error) {
 	err := r.db.QueryRow(r.rebind(`
 		INSERT INTO dataset_requests
 			(title, description, requester_name, requester_username, requester_email,
-			 department, dataset_type, use_case, status, priority, estimated_size, format,
-			 due_date, notes, tags, created_by)
-		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+			 department, dataset_type, use_case, status, priority, estimated_size, statistics,
+			 target_campaign, key4hep_stack, format, due_date, notes, tags, created_by)
+		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 		RETURNING id`),
 		req.Title, req.Description, req.RequesterName, req.RequesterUsername, req.RequesterEmail,
 		req.Department, req.DatasetType, req.UseCase, req.Status, req.Priority,
-		req.EstimatedSize, req.Format, req.DueDate, req.Notes, req.Tags, createdBy,
+		req.EstimatedSize, req.Statistics, req.TargetCampaign, req.Key4hepStack, req.Format, req.DueDate, req.Notes, req.Tags, createdBy,
 	).Scan(&id)
 	return id, err
 }
@@ -316,11 +320,11 @@ func (r *RequestStore) Update(req *DatasetRequest) error {
 		UPDATE dataset_requests SET
 			title=?, description=?, requester_name=?, requester_username=?, requester_email=?,
 			department=?, dataset_type=?, use_case=?, status=?, priority=?,
-			estimated_size=?, format=?, due_date=?, notes=?, tags=?
+			estimated_size=?, statistics=?, target_campaign=?, key4hep_stack=?, format=?, due_date=?, notes=?, tags=?
 		WHERE id=?`),
 		req.Title, req.Description, req.RequesterName, req.RequesterUsername, req.RequesterEmail,
 		req.Department, req.DatasetType, req.UseCase, req.Status, req.Priority,
-		req.EstimatedSize, req.Format, req.DueDate, req.Notes, req.Tags, req.ID,
+		req.EstimatedSize, req.Statistics, req.TargetCampaign, req.Key4hepStack, req.Format, req.DueDate, req.Notes, req.Tags, req.ID,
 	)
 	return err
 }
@@ -412,7 +416,7 @@ func scanRequest(row scannable) (*DatasetRequest, error) {
 	err := row.Scan(
 		&req.ID, &req.Title, &req.Description, &req.RequesterName, &req.RequesterUsername, &req.RequesterEmail,
 		&req.Department, &req.DatasetType, &req.UseCase, &req.Status, &req.Priority,
-		&req.EstimatedSize, &req.Format, &req.DueDate, &req.Notes, &req.Tags,
+		&req.EstimatedSize, &req.Statistics, &req.TargetCampaign, &req.Key4hepStack, &req.Format, &req.DueDate, &req.Notes, &req.Tags,
 		&req.CreatedBy, &req.AssignedTo, &req.AssignedToName,
 		&req.PhysicsApproval, &req.ResourcesApproval,
 		timeVal{&req.CreatedAt}, timeVal{&req.UpdatedAt},

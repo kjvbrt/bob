@@ -50,7 +50,7 @@ func (h *Handler) AddComment(w http.ResponseWriter, r *http.Request) {
 
 	req, _ := h.requests.GetByID(id)
 	stages, _ := h.updates.GetByRequestID(id)
-	h.renderPartial(w, r, "events", PageData{Request: req, Updates: stages})
+	h.renderPartial(w, r, "activity", PageData{Request: req, Updates: stages})
 }
 
 func (h *Handler) AssignRequest(w http.ResponseWriter, r *http.Request) {
