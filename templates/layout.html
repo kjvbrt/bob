@@ -265,7 +265,13 @@
       if (e.detail.target.id === 'modal-container') {
         document.getElementById('modal-overlay').classList.remove('hidden');
       }
-      renderMd(e.detail.target);
+      // For outerHTML swaps the target is detached after the swap; fall back to document.
+      // data-rendered prevents double-rendering of already-processed elements.
+      var root = document.contains(e.detail.target) ? e.detail.target : document;
+      renderMd(root);
+      // Browser may restore a previously typed textarea value into the fresh form.
+      var commentBox = document.querySelector('#activity-area textarea[name="body"]');
+      if (commentBox) commentBox.value = '';
     });
 
     var mathOpts = {

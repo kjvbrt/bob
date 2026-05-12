@@ -62,6 +62,35 @@ func (us *UpdateStore) Add(requestID, userID int, updateType UpdateType, body st
 	return err
 }
 
+func (us *UpdateStore) GetByID(id int) (*Update, error) {
+	var up Update
+	err := us.db.QueryRow(us.rebind(`
+		SELECT e.id, e.request_id, COALESCE(e.user_id, 0),
+		       COALESCE(u.username, ''), COALESCE(u.display_name, 'System'),
+		       e.type, e.body, e.created_at
+		FROM request_activity e
+		LEFT JOIN users u ON u.id = e.user_id
+		WHERE e.id = ?`), id).Scan(
+		&up.ID, &up.RequestID, &up.UserID,
+		&up.Username, &up.DisplayName,
+		&up.Type, &up.Body, timeVal{&up.CreatedAt},
+	)
+	if err != nil {
+		return nil, err
+	}
+	return &up, nil
+}
+
+func (us *UpdateStore) UpdateBody(id int, body string) error {
+	_, err := us.db.Exec(us.rebind(`UPDATE request_activity SET body = ? WHERE id = ?`), body, id)
+	return err
+}
+
+func (us *UpdateStore) DeleteByID(id int) error {
+	_, err := us.db.Exec(us.rebind(`DELETE FROM request_activity WHERE id = ?`), id)
+	return err
+}
+
 func (us *UpdateStore) GetByRequestID(requestID int) ([]*Update, error) {
 	rows, err := us.db.Query(us.rebind(`
 		SELECT e.id, e.request_id, COALESCE(e.user_id, 0),

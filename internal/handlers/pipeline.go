@@ -54,6 +54,104 @@ func (h *Handler) AddComment(w http.ResponseWriter, r *http.Request) {
 	h.renderPartial(w, r, "activity", PageData{Request: req, Updates: stages})
 }
 
+func (h *Handler) GetComment(w http.ResponseWriter, r *http.Request) {
+	commentID, err := strconv.Atoi(r.PathValue("comment_id"))
+	if err != nil {
+		http.Error(w, "Not Found", 404)
+		return
+	}
+	comment, err := h.updates.GetByID(commentID)
+	if err != nil {
+		http.Error(w, "Not Found", 404)
+		return
+	}
+	h.renderPartial(w, r, "comment_view", PageData{Comment: comment})
+}
+
+func (h *Handler) EditCommentForm(w http.ResponseWriter, r *http.Request) {
+	commentID, err := strconv.Atoi(r.PathValue("comment_id"))
+	if err != nil {
+		http.Error(w, "Not Found", 404)
+		return
+	}
+	comment, err := h.updates.GetByID(commentID)
+	if err != nil {
+		http.Error(w, "Not Found", 404)
+		return
+	}
+	user := middleware.GetUser(r)
+	if user == nil || (!user.IsManager() && comment.UserID != user.ID) {
+		http.Error(w, "Forbidden", 403)
+		return
+	}
+	h.renderPartial(w, r, "comment_edit", PageData{Comment: comment})
+}
+
+func (h *Handler) PatchComment(w http.ResponseWriter, r *http.Request) {
+	commentID, err := strconv.Atoi(r.PathValue("comment_id"))
+	if err != nil {
+		http.Error(w, "Not Found", 404)
+		return
+	}
+	comment, err := h.updates.GetByID(commentID)
+	if err != nil {
+		http.Error(w, "Not Found", 404)
+		return
+	}
+	user := middleware.GetUser(r)
+	if user == nil || (!user.IsManager() && comment.UserID != user.ID) {
+		http.Error(w, "Forbidden", 403)
+		return
+	}
+	if err := r.ParseForm(); err != nil {
+		http.Error(w, "Bad Request", 400)
+		return
+	}
+	body := strings.TrimSpace(r.FormValue("body"))
+	if body == "" {
+		http.Error(w, "comment body required", 400)
+		return
+	}
+	if err := h.updates.UpdateBody(commentID, body); err != nil {
+		slog.Error("patch comment", "error", err)
+		http.Error(w, "Internal Server Error", 500)
+		return
+	}
+	comment.Body = body
+	h.renderPartial(w, r, "comment_view", PageData{Comment: comment})
+}
+
+func (h *Handler) DeleteComment(w http.ResponseWriter, r *http.Request) {
+	id, err := strconv.Atoi(r.PathValue("id"))
+	if err != nil {
+		http.Error(w, "Not Found", 404)
+		return
+	}
+	commentID, err := strconv.Atoi(r.PathValue("comment_id"))
+	if err != nil {
+		http.Error(w, "Not Found", 404)
+		return
+	}
+	comment, err := h.updates.GetByID(commentID)
+	if err != nil {
+		http.Error(w, "Not Found", 404)
+		return
+	}
+	user := middleware.GetUser(r)
+	if user == nil || (!user.IsManager() && comment.UserID != user.ID) {
+		http.Error(w, "Forbidden", 403)
+		return
+	}
+	if err := h.updates.DeleteByID(commentID); err != nil {
+		slog.Error("delete comment", "error", err)
+		http.Error(w, "Internal Server Error", 500)
+		return
+	}
+	req, _ := h.requests.GetByID(id)
+	stages, _ := h.updates.GetByRequestID(id)
+	h.renderPartial(w, r, "activity", PageData{Request: req, Updates: stages})
+}
+
 func (h *Handler) AssignRequest(w http.ResponseWriter, r *http.Request) {
 	id, err := strconv.Atoi(r.PathValue("id"))
 	if err != nil {

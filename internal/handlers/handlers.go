@@ -228,6 +228,7 @@ type PageData struct {
 	Managers    []*models.User
 	Relations   []*models.Relation
 	Clone       *models.DatasetRequest
+	Comment     *models.Update
 	IsPage      bool // true when rendered as a standalone page, not a modal fragment
 }
 
