@@ -1,6 +1,5 @@
 # Binary
-dataset-tracker
-/dataset-tracker
+fcc-drs
 
 # Tailwind standalone CLI (download via scripts/download-assets.sh)
 .tools/
