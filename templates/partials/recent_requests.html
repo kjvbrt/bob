@@ -83,14 +83,10 @@
   </div>
   <h3 class="text-lg font-semibold text-stone-900 dark:text-stone-100 mb-2">No requests yet</h3>
   <p class="text-stone-500 text-sm mb-6 max-w-xs">Submit your first FCC dataset request to begin tracking simulation, reconstruction, or detector data needs.</p>
-  <button
-    hx-get="/requests/new"
-    hx-target="#modal-container"
-    hx-swap="innerHTML"
-    onclick="document.getElementById('modal-overlay').classList.remove('hidden')"
-    class="px-5 py-2.5 rounded-xl bg-indigo-600 text-white text-sm font-medium hover:bg-indigo-700 transition-colors shadow-sm">
+  <a href="/requests/new"
+     class="px-5 py-2.5 rounded-xl bg-indigo-600 text-white text-sm font-medium hover:bg-indigo-700 transition-colors shadow-sm">
     Create first request
-  </button>
+  </a>
 </div>
 {{end}}
 {{end}}

@@ -1,0 +1,401 @@
+{{/* ────── Title ────────────────────────────────────────────────────────── */}}
+{{define "detail_section_title"}}
+{{$canEdit := or .CurrentUser.IsManager (and (eq .Request.CreatedBy .CurrentUser.ID) (or (eq .Request.Status "draft") (eq .Request.Status "pending")))}}
+<div class="flex items-start gap-1.5">
+  <h2 class="text-xl font-semibold text-stone-900 dark:text-stone-100 leading-snug" data-md-inline>{{.Request.Title}}</h2>
+  {{if $canEdit}}
+  <button hx-get="/requests/{{.Request.ID}}/section/title/edit"
+          hx-target="#ds-title" hx-swap="innerHTML"
+          class="p-1 rounded-lg text-stone-300 dark:text-stone-600 hover:text-indigo-500 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 transition-colors">
+    <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+    </svg>
+  </button>
+  {{end}}
+</div>
+{{end}}
+
+{{define "detail_edit_title"}}
+<form hx-patch="/requests/{{.Request.ID}}" hx-target="#ds-title" hx-swap="innerHTML"
+      class="flex items-center gap-2">
+  <input type="hidden" name="_section" value="title">
+  <input type="text" name="title" value="{{.Request.Title}}" required autocomplete="off"
+         class="form-input flex-1" autofocus>
+  <button type="submit"
+          class="shrink-0 px-3 py-2 rounded-xl bg-indigo-600 text-white text-sm font-medium hover:bg-indigo-700 active:scale-95 transition-all">Save</button>
+  <button type="button"
+          hx-get="/requests/{{.Request.ID}}/section/title"
+          hx-target="#ds-title" hx-swap="innerHTML"
+          class="shrink-0 px-3 py-2 rounded-xl border border-stone-200 dark:border-stone-700 text-stone-600 dark:text-stone-300 text-sm font-medium hover:bg-stone-50 dark:hover:bg-stone-800 transition-colors">Cancel</button>
+</form>
+{{end}}
+
+{{/* ────── Description ──────────────────────────────────────────────────── */}}
+{{define "detail_section_description"}}
+{{$canEdit := or .CurrentUser.IsManager (and (eq .Request.CreatedBy .CurrentUser.ID) (or (eq .Request.Status "draft") (eq .Request.Status "pending")))}}
+{{$isDraft := eq .Request.Status "draft"}}
+{{if .Request.Description}}
+<div class="mb-5">
+  <div class="flex items-center gap-1.5 mb-1">
+    <span class="detail-label">Description</span>
+    {{if $canEdit}}
+    <button hx-get="/requests/{{.Request.ID}}/section/description/edit"
+            hx-target="#ds-description" hx-swap="innerHTML"
+            class="p-1 rounded-lg text-stone-300 dark:text-stone-600 hover:text-indigo-500 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 transition-colors">
+      <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+      </svg>
+    </button>
+    {{end}}
+  </div>
+  <div class="bg-stone-50 dark:bg-stone-800/50 rounded-2xl p-4">
+    <div class="prose-md text-sm text-stone-700 dark:text-stone-300 leading-relaxed" data-md>{{.Request.Description}}</div>
+  </div>
+</div>
+{{else if $isDraft}}
+<div class="mb-5">
+  <div class="flex items-center gap-1.5 mb-1">
+    <span class="detail-label">Description</span>
+    {{if $canEdit}}
+    <button hx-get="/requests/{{.Request.ID}}/section/description/edit"
+            hx-target="#ds-description" hx-swap="innerHTML"
+            class="p-1 rounded-lg text-stone-300 dark:text-stone-600 hover:text-indigo-500 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 transition-colors">
+      <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+      </svg>
+    </button>
+    {{end}}
+  </div>
+  <div style="background:#fff5f5;border:1px solid #fecaca;border-radius:1rem;padding:1rem;min-height:3rem;"></div>
+</div>
+{{else if $canEdit}}
+<div class="mb-5">
+  <button hx-get="/requests/{{.Request.ID}}/section/description/edit"
+          hx-target="#ds-description" hx-swap="innerHTML"
+          class="text-sm text-stone-400 hover:text-indigo-500 dark:hover:text-indigo-400 transition-colors">
+    + Add description
+  </button>
+</div>
+{{end}}
+{{end}}
+
+{{define "detail_edit_description"}}
+<div class="mb-5">
+  <form hx-patch="/requests/{{.Request.ID}}" hx-target="#ds-description" hx-swap="innerHTML"
+        class="space-y-2">
+    <input type="hidden" name="_section" value="description">
+    <textarea name="description" rows="4" autocomplete="off"
+              placeholder="Physics process, energy range, detector concept, selection criteria…"
+              class="form-input resize-none w-full">{{.Request.Description}}</textarea>
+    <div class="flex gap-2 justify-end">
+      <button type="button"
+              hx-get="/requests/{{.Request.ID}}/section/description"
+              hx-target="#ds-description" hx-swap="innerHTML"
+              class="px-3 py-1.5 rounded-xl border border-stone-200 dark:border-stone-700 text-stone-600 dark:text-stone-300 text-sm font-medium hover:bg-stone-50 dark:hover:bg-stone-800 transition-colors">Cancel</button>
+      <button type="submit"
+              class="px-3 py-1.5 rounded-xl bg-indigo-600 text-white text-sm font-medium hover:bg-indigo-700 active:scale-95 transition-all">Save</button>
+    </div>
+  </form>
+</div>
+{{end}}
+
+{{/* ────── Tags ──────────────────────────────────────────────────────────── */}}
+{{define "detail_section_tags"}}
+{{$canEdit := or .CurrentUser.IsManager (and (eq .Request.CreatedBy .CurrentUser.ID) (or (eq .Request.Status "draft") (eq .Request.Status "pending")))}}
+{{if or .Request.TagList $canEdit}}
+<div class="mb-5">
+  <div class="flex items-center gap-1.5 mb-1">
+    <span class="detail-label">Tags</span>
+    {{if $canEdit}}
+    <button hx-get="/requests/{{.Request.ID}}/section/tags/edit"
+            hx-target="#ds-tags" hx-swap="innerHTML"
+            class="p-1 rounded-lg text-stone-300 dark:text-stone-600 hover:text-indigo-500 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 transition-colors">
+      <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+      </svg>
+    </button>
+    {{end}}
+  </div>
+  {{if .Request.TagList}}
+  <div class="flex flex-wrap gap-1.5">
+    {{range .Request.TagList}}<span class="tag">{{.}}</span>{{end}}
+  </div>
+  {{end}}
+</div>
+{{end}}
+{{end}}
+
+{{define "detail_edit_tags"}}
+<div class="mb-5">
+  <form hx-patch="/requests/{{.Request.ID}}" hx-target="#ds-tags" hx-swap="innerHTML"
+        class="flex items-center gap-2">
+    <input type="hidden" name="_section" value="tags">
+    <input type="text" name="tags" value="{{.Request.Tags}}" autocomplete="off"
+           placeholder="e.g. fcc-hh, fcc-ee, higgs, top, ewk, bsm"
+           class="form-input flex-1">
+    <button type="button"
+            hx-get="/requests/{{.Request.ID}}/section/tags"
+            hx-target="#ds-tags" hx-swap="innerHTML"
+            class="shrink-0 px-3 py-2 rounded-xl border border-stone-200 dark:border-stone-700 text-stone-600 dark:text-stone-300 text-sm font-medium hover:bg-stone-50 dark:hover:bg-stone-800 transition-colors">Cancel</button>
+    <button type="submit"
+            class="shrink-0 px-3 py-2 rounded-xl bg-indigo-600 text-white text-sm font-medium hover:bg-indigo-700 active:scale-95 transition-all">Save</button>
+  </form>
+</div>
+{{end}}
+
+{{/* ────── Details grid ────────────────────────────────────────────────── */}}
+{{define "detail_section_details"}}
+{{$canEdit := or .CurrentUser.IsManager (and (eq .Request.CreatedBy .CurrentUser.ID) (or (eq .Request.Status "draft") (eq .Request.Status "pending")))}}
+{{$isDraft := eq .Request.Status "draft"}}
+<div class="mb-5">
+  <div class="flex items-center gap-2 mb-2">
+    <span class="detail-label">Request Details</span>
+    {{if $canEdit}}
+    <button hx-get="/requests/{{.Request.ID}}/section/details/edit"
+            hx-target="#ds-details" hx-swap="innerHTML"
+            class="p-1 rounded-lg text-stone-300 dark:text-stone-600 hover:text-indigo-500 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 transition-colors">
+      <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+      </svg>
+    </button>
+    {{end}}
+  </div>
+  <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+    {{if or .Request.Department $isDraft}}
+    <div class="detail-item{{if not .Request.Department}} detail-item--required{{end}}">
+      <span class="detail-label">Group / Team</span>
+      {{if .Request.Department}}
+      <span class="detail-value">{{.Request.Department}}</span>
+      {{end}}
+    </div>
+    {{end}}
+    {{if or .Request.UseCase $isDraft}}
+    <div class="detail-item{{if not .Request.UseCase}} detail-item--required{{end}}">
+      <span class="detail-label">Use Case</span>
+      {{if .Request.UseCase}}
+      <span class="detail-value">{{.Request.UseCaseLabel}}</span>
+      {{end}}
+    </div>
+    {{end}}
+    <div class="detail-item{{if and $isDraft (not .Request.DatasetType)}} detail-item--required{{end}}">
+      <span class="detail-label">Final Processing Stage</span>
+      {{if .Request.DatasetType}}
+      <span class="detail-value">{{.Request.DatasetTypeLabel}}</span>
+      {{end}}
+    </div>
+    {{if or .Request.Format $isDraft}}
+    <div class="detail-item{{if not .Request.Format}} detail-item--required{{end}}">
+      <span class="detail-label">Format</span>
+      {{if .Request.Format}}
+      <span class="detail-value">{{.Request.Format}}</span>
+      {{end}}
+    </div>
+    {{end}}
+    {{if or .Request.Statistics $isDraft}}
+    <div class="detail-item{{if not .Request.Statistics}} detail-item--required{{end}}">
+      <span class="detail-label">Statistics</span>
+      {{if .Request.Statistics}}
+      <span class="detail-value">{{.Request.Statistics}}</span>
+      {{end}}
+    </div>
+    {{end}}
+    {{if .Request.EstimatedSize}}
+    <div class="detail-item">
+      <span class="detail-label">Estimated Size</span>
+      <span class="detail-value">{{.Request.EstimatedSize}}</span>
+    </div>
+    {{end}}
+    {{if .Request.TargetCampaign}}
+    <div class="detail-item">
+      <span class="detail-label">Target Campaign</span>
+      <span class="detail-value">{{.Request.TargetCampaign}}</span>
+    </div>
+    {{end}}
+    {{if .Request.Key4hepStack}}
+    <div class="detail-item">
+      <span class="detail-label">Key4hep Stack</span>
+      <span class="detail-value">{{.Request.Key4hepStack}}</span>
+    </div>
+    {{end}}
+    {{if .Request.DueDate}}
+    <div class="detail-item">
+      <span class="detail-label">Due Date</span>
+      <span class="detail-value">{{.Request.DueDate}}</span>
+    </div>
+    {{end}}
+  </div>
+</div>
+{{end}}
+
+{{define "detail_edit_details"}}
+{{$req := .Request}}
+<div class="mb-5">
+  <form hx-patch="/requests/{{$req.ID}}" hx-target="#ds-details" hx-swap="innerHTML">
+    <input type="hidden" name="_section" value="details">
+    <div class="flex items-center justify-between mb-3">
+      <span class="detail-label">Request Details</span>
+      <div class="flex items-center gap-2">
+        <button type="button"
+                hx-get="/requests/{{$req.ID}}/section/details"
+                hx-target="#ds-details" hx-swap="innerHTML"
+                class="text-xs px-3 py-1.5 rounded-xl border border-stone-200 dark:border-stone-700 text-stone-600 dark:text-stone-300 font-medium hover:bg-stone-50 dark:hover:bg-stone-800 transition-colors">Cancel</button>
+        <button type="submit"
+                class="text-xs px-3 py-1.5 rounded-xl bg-indigo-600 text-white font-medium hover:bg-indigo-700 active:scale-95 transition-all">Save</button>
+      </div>
+    </div>
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <div>
+        <label class="form-label">Group / Team</label>
+        {{$dept := $req.Department}}
+        <select name="department" class="form-input">
+          <option value="" {{if eq $dept ""}}selected{{end}} disabled>— Select —</option>
+          <optgroup label="Physics Groups">
+            <option value="BSM physics"                   {{if eq $dept "BSM physics"}}selected{{end}}>BSM physics</option>
+            <option value="Electroweak physics"           {{if eq $dept "Electroweak physics"}}selected{{end}}>Electroweak physics</option>
+            <option value="FCC-hh physics"                {{if eq $dept "FCC-hh physics"}}selected{{end}}>FCC-hh physics</option>
+            <option value="Flavour physics"               {{if eq $dept "Flavour physics"}}selected{{end}}>Flavour physics</option>
+            <option value="Global fits &amp; EFT"         {{if eq $dept "Global fits & EFT"}}selected{{end}}>Global fits &amp; EFT</option>
+            <option value="Higgs physics"                 {{if eq $dept "Higgs physics"}}selected{{end}}>Higgs physics</option>
+            <option value="Precision calculations"        {{if eq $dept "Precision calculations"}}selected{{end}}>Precision calculations</option>
+            <option value="QCD and photon-photon physics" {{if eq $dept "QCD and photon-photon physics"}}selected{{end}}>QCD and photon-photon physics</option>
+            <option value="Top-quark physics"             {{if eq $dept "Top-quark physics"}}selected{{end}}>Top-quark physics</option>
+          </optgroup>
+          <optgroup label="Software Groups">
+            <option value="Computing Resources"                      {{if eq $dept "Computing Resources"}}selected{{end}}>Computing Resources</option>
+            <option value="Core SW/Key4hep, Releases"                {{if eq $dept "Core SW/Key4hep, Releases"}}selected{{end}}>Core SW/Key4hep, Releases</option>
+            <option value="Digitization and Reconstruction Software" {{if eq $dept "Digitization and Reconstruction Software"}}selected{{end}}>Digitization and Reconstruction Software</option>
+            <option value="Documentation and Trainings"              {{if eq $dept "Documentation and Trainings"}}selected{{end}}>Documentation and Trainings</option>
+            <option value="Geometry, Simulation"                     {{if eq $dept "Geometry, Simulation"}}selected{{end}}>Geometry, Simulation</option>
+            <option value="Interaction Region, Beam Backgrounds"     {{if eq $dept "Interaction Region, Beam Backgrounds"}}selected{{end}}>Interaction Region, Beam Backgrounds in Detectors</option>
+            <option value="MC Productions, GRID Tools"               {{if eq $dept "MC Productions, GRID Tools"}}selected{{end}}>MC Productions, GRID Tools</option>
+          </optgroup>
+          <optgroup label="Shared Groups">
+            <option value="Analysis Tools"            {{if eq $dept "Analysis Tools"}}selected{{end}}>Analysis Tools</option>
+            <option value="High-level reconstruction" {{if eq $dept "High-level reconstruction"}}selected{{end}}>High-level reconstruction</option>
+            <option value="Monte Carlo tools"         {{if eq $dept "Monte Carlo tools"}}selected{{end}}>Monte Carlo tools</option>
+          </optgroup>
+          <optgroup label="Other">
+            <option value="Other" {{if eq $dept "Other"}}selected{{end}}>Other</option>
+          </optgroup>
+        </select>
+      </div>
+      <div>
+        <label class="form-label">Use Case</label>
+        {{$uc := $req.UseCase}}
+        <select name="use_case" class="form-input">
+          <option value="" {{if eq $uc ""}}selected{{end}} disabled>— Select —</option>
+          {{range useCaseLabels}}
+          <option value="{{.Value}}" {{if eq $uc .Value}}selected{{end}}>{{.Label}}</option>
+          {{end}}
+        </select>
+      </div>
+      <div>
+        <label class="form-label">Final Processing Stage</label>
+        {{$dt := $req.DatasetType}}
+        <select name="dataset_type" class="form-input">
+          <option value="" {{if eq $dt ""}}selected{{end}} disabled>— Select —</option>
+          {{range datasetTypeLabels}}
+          <option value="{{.Value}}" {{if eq $dt .Value}}selected{{end}}>{{.Label}}</option>
+          {{end}}
+        </select>
+      </div>
+      <div>
+        <label class="form-label">Format</label>
+        {{$fmt := $req.Format}}
+        <select name="format" class="form-input">
+          <option value="" {{if eq $fmt ""}}selected{{end}} disabled>— Select —</option>
+          <option value="EDM4hep"      {{if eq $fmt "EDM4hep"}}selected{{end}}>EDM4hep</option>
+          <option value="HepMC3"       {{if eq $fmt "HepMC3"}}selected{{end}}>HepMC3</option>
+          <option value="LHEF"         {{if eq $fmt "LHEF"}}selected{{end}}>LHEF</option>
+          <option value="ROOT"         {{if eq $fmt "ROOT"}}selected{{end}}>ROOT</option>
+          <option value="ROOT NTuple"  {{if eq $fmt "ROOT NTuple"}}selected{{end}}>ROOT NTuple</option>
+          <option value="ROOT RNTuple" {{if eq $fmt "ROOT RNTuple"}}selected{{end}}>ROOT RNTuple</option>
+          <option value="STDHEP"       {{if eq $fmt "STDHEP"}}selected{{end}}>STDHEP</option>
+          <option value="Other"        {{if eq $fmt "Other"}}selected{{end}}>Other</option>
+        </select>
+      </div>
+      <div>
+        <label class="form-label">Statistics</label>
+        <input type="text" name="statistics" value="{{$req.Statistics}}"
+               placeholder="e.g. 10M events" class="form-input">
+      </div>
+      <div>
+        <label class="form-label">Estimated Size</label>
+        <input type="text" name="estimated_size" value="{{$req.EstimatedSize}}"
+               placeholder="e.g. 500 GB" class="form-input">
+      </div>
+      <div>
+        <label class="form-label">Target Campaign</label>
+        <input type="text" name="target_campaign" value="{{$req.TargetCampaign}}"
+               placeholder="e.g. Spring2026" class="form-input">
+      </div>
+      <div>
+        <label class="form-label">Key4hep Stack</label>
+        <input type="text" name="key4hep_stack" value="{{$req.Key4hepStack}}"
+               placeholder="e.g. key4hep-2024-03-10" class="form-input">
+      </div>
+      <div>
+        <label class="form-label">Due Date</label>
+        <input type="date" name="due_date" value="{{$req.DueDate}}" class="form-input">
+      </div>
+      <div>
+        <label class="form-label">Priority</label>
+        {{$pri := $req.Priority}}
+        <select name="priority" class="form-input">
+          <option value="low"      {{if eq $pri "low"}}selected{{end}}>Low</option>
+          <option value="medium"   {{if eq $pri "medium"}}selected{{end}}>Medium</option>
+          <option value="high"     {{if eq $pri "high"}}selected{{end}}>High</option>
+          <option value="critical" {{if eq $pri "critical"}}selected{{end}}>Critical</option>
+        </select>
+      </div>
+    </div>
+  </form>
+</div>
+{{end}}
+
+{{/* ────── Notes ────────────────────────────────────────────────────────── */}}
+{{define "detail_section_notes"}}
+{{$canEdit := or .CurrentUser.IsManager (and (eq .Request.CreatedBy .CurrentUser.ID) (or (eq .Request.Status "draft") (eq .Request.Status "pending")))}}
+{{if or .Request.Notes $canEdit}}
+<div class="mb-5">
+  <div class="flex items-center gap-1.5 mb-1">
+    <span class="detail-label">Additional Notes</span>
+    {{if $canEdit}}
+    <button hx-get="/requests/{{.Request.ID}}/section/notes/edit"
+            hx-target="#ds-notes" hx-swap="innerHTML"
+            class="p-1 rounded-lg text-stone-300 dark:text-stone-600 hover:text-indigo-500 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 transition-colors">
+      <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+      </svg>
+    </button>
+    {{end}}
+  </div>
+  {{if .Request.Notes}}
+  <div class="bg-amber-50 dark:bg-amber-950/30 border border-amber-100 dark:border-amber-900/50 rounded-xl p-3">
+    <p class="text-sm text-stone-700 dark:text-stone-300 leading-relaxed">{{.Request.Notes}}</p>
+  </div>
+  {{end}}
+</div>
+{{end}}
+{{end}}
+
+{{define "detail_edit_notes"}}
+<div class="mb-5">
+  <form hx-patch="/requests/{{.Request.ID}}" hx-target="#ds-notes" hx-swap="innerHTML"
+        class="space-y-2">
+    <input type="hidden" name="_section" value="notes">
+    <label class="form-label">Additional Notes</label>
+    <textarea name="notes" rows="3" autocomplete="off"
+              placeholder="Generator settings, beam energy, pile-up conditions, special requirements…"
+              class="form-input resize-none w-full">{{.Request.Notes}}</textarea>
+    <div class="flex gap-2 justify-end">
+      <button type="button"
+              hx-get="/requests/{{.Request.ID}}/section/notes"
+              hx-target="#ds-notes" hx-swap="innerHTML"
+              class="px-3 py-1.5 rounded-xl border border-stone-200 dark:border-stone-700 text-stone-600 dark:text-stone-300 text-sm font-medium hover:bg-stone-50 dark:hover:bg-stone-800 transition-colors">Cancel</button>
+      <button type="submit"
+              class="px-3 py-1.5 rounded-xl bg-indigo-600 text-white text-sm font-medium hover:bg-indigo-700 active:scale-95 transition-all">Save</button>
+    </div>
+  </form>
+</div>
+{{end}}

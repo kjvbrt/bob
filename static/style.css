@@ -250,6 +250,14 @@ select.form-input { cursor: pointer; }
   border-radius: 0.75rem;
   padding: 0.75rem;
 }
+.detail-item--required {
+  background: #fff5f5;
+  border-color: #fecaca;
+}
+.dark .detail-item--required {
+  background: rgba(69, 10, 10, 0.18);
+  border-color: rgba(127, 29, 29, 0.35);
+}
 
 .detail-label {
   font-size: 0.7rem;

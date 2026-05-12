@@ -67,6 +67,7 @@ func main() {
 	mux.HandleFunc("POST /requests", middleware.RequireAuth(h.CreateRequest))
 	mux.HandleFunc("GET /requests/{id}", middleware.RequireAuth(h.GetRequest))
 	mux.HandleFunc("GET /requests/{id}/edit", middleware.RequireAuth(h.EditRequestForm))
+	mux.HandleFunc("GET /requests/{id}/clone", middleware.RequireAuth(h.GetCloneForm))
 	mux.HandleFunc("POST /requests/{id}", middleware.RequireAuth(h.UpdateRequest))
 	mux.HandleFunc("GET /api/stats", middleware.RequireAuth(h.GetStats))
 	mux.HandleFunc("GET /api/recent", middleware.RequireAuth(h.GetRecent))
@@ -74,6 +75,9 @@ func main() {
 	// Manager-only routes
 	mux.HandleFunc("GET /manager", middleware.RequireManager(h.ManagerView))
 	mux.HandleFunc("POST /requests/batch", middleware.RequireManager(h.BatchAction))
+	mux.HandleFunc("GET /requests/{id}/section/{section}", middleware.RequireAuth(h.ViewSection))
+	mux.HandleFunc("GET /requests/{id}/section/{section}/edit", middleware.RequireAuth(h.EditSection))
+	mux.HandleFunc("PATCH /requests/{id}", middleware.RequireAuth(h.PatchRequest))
 	mux.HandleFunc("POST /requests/{id}/status", middleware.RequireAuth(h.UpdateStatus))
 	mux.HandleFunc("POST /requests/{id}/approval", middleware.RequireManager(h.ApprovalDecision))
 	mux.HandleFunc("POST /requests/{id}/priority", middleware.RequireManager(h.UpdatePriority))
@@ -81,7 +85,7 @@ func main() {
 	mux.HandleFunc("POST /requests/{id}/comments", middleware.RequireAuth(h.AddComment))
 	mux.HandleFunc("POST /requests/{id}/relations", middleware.RequireAuth(h.AddRelation))
 	mux.HandleFunc("DELETE /requests/{id}/relations/{rel_id}", middleware.RequireAuth(h.RemoveRelation))
-	mux.HandleFunc("DELETE /requests/{id}", middleware.RequireManager(h.DeleteRequest))
+	mux.HandleFunc("DELETE /requests/{id}", middleware.RequireAuth(h.DeleteRequest))
 
 	port := os.Getenv("PORT")
 	if port == "" {

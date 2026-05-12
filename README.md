@@ -296,6 +296,11 @@ Requester identity (name, username, email) is populated automatically from CERN 
 * Field to specify detector option and version
 * Make campaign and Key4hep stack drop down, where one of them is required to be
     specified
+* editable/deletable comments
+* versioning
+* Clean up stale mention relations on request edit (currently mentions are only added, never removed if a `#N` reference is deleted from description or notes)
+* do not allow scrolling of underlying web page when modal is active
+* How I can lift draft into a request?
 
 
 ---

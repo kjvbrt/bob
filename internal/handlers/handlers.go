@@ -227,6 +227,7 @@ type PageData struct {
 	Updates     []*models.Update
 	Managers    []*models.User
 	Relations   []*models.Relation
+	Clone       *models.DatasetRequest
 	IsPage      bool // true when rendered as a standalone page, not a modal fragment
 }
 
@@ -376,7 +377,7 @@ func (h *Handler) ListRequests(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) NewRequestForm(w http.ResponseWriter, r *http.Request) {
-	h.renderPartial(w, r, "request_form", PageData{Title: "New Request"})
+	h.renderPage(w, r, "request_form_page", PageData{Title: "New Request", IsPage: true})
 }
 
 func (h *Handler) CreateRequest(w http.ResponseWriter, r *http.Request) {
@@ -426,8 +427,8 @@ func (h *Handler) CreateRequest(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "title is required", 400)
 		return
 	}
-	if req.Status != models.StatusDraft && (req.UseCase == "" || req.DatasetType == "" || req.Department == "") {
-		http.Error(w, "use case, dataset stage, and group/team are required", 400)
+	if req.Status != models.StatusDraft && (req.Description == "" || req.Department == "" || req.UseCase == "" || req.DatasetType == "" || req.Format == "" || req.Statistics == "") {
+		http.Error(w, "description, group/team, use case, processing stage, format, and event count are required", 400)
 		return
 	}
 
@@ -447,7 +448,24 @@ func (h *Handler) CreateRequest(w http.ResponseWriter, r *http.Request) {
 	h.updates.Add(int(id), createdBy, models.UpdateCreated, "Request submitted by "+userName)
 	h.relations.CreateMentions(int(id), createdBy, req.Description, req.Notes)
 
-	w.Header().Set("HX-Redirect", "/requests")
+	relTypes := r.Form["rel_type"]
+	for i, toRaw := range r.Form["rel_to"] {
+		toIDStr := strings.TrimPrefix(strings.TrimSpace(toRaw), "#")
+		toID, err := strconv.Atoi(toIDStr)
+		if err != nil || toID <= 0 || toID == int(id) {
+			continue
+		}
+		relType := models.RelationVariant
+		if i < len(relTypes) {
+			switch t := models.RelationType(relTypes[i]); t {
+			case models.RelationExtends, models.RelationDependsOn, models.RelationVariant, models.RelationRelated:
+				relType = t
+			}
+		}
+		h.relations.Add(int(id), toID, createdBy, relType) //nolint:errcheck
+	}
+
+	w.Header().Set("HX-Redirect", "/requests/"+strconv.Itoa(int(id)))
 	w.WriteHeader(http.StatusOK)
 }
 
@@ -484,12 +502,63 @@ func (h *Handler) GetRequest(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) EditRequestForm(w http.ResponseWriter, r *http.Request) {
+	http.Redirect(w, r, "/requests/"+r.PathValue("id"), http.StatusFound)
+}
+
+func (h *Handler) GetCloneForm(w http.ResponseWriter, r *http.Request) {
 	id, err := strconv.Atoi(r.PathValue("id"))
 	if err != nil {
 		http.Error(w, "Not Found", 404)
 		return
 	}
 	req, err := h.requests.GetByID(id)
+	if err != nil {
+		http.Error(w, "Not Found", 404)
+		return
+	}
+	h.renderPage(w, r, "request_form_page", PageData{Title: "Clone Request", Clone: req, IsPage: true})
+}
+
+func (h *Handler) ViewSection(w http.ResponseWriter, r *http.Request) {
+	id, err := strconv.Atoi(r.PathValue("id"))
+	if err != nil {
+		http.Error(w, "Not Found", 404)
+		return
+	}
+	req, err := h.requests.GetByID(id)
+	if err != nil {
+		http.Error(w, "Not Found", 404)
+		return
+	}
+	h.renderPartial(w, r, "detail_section_"+r.PathValue("section"), PageData{Request: req})
+}
+
+func (h *Handler) EditSection(w http.ResponseWriter, r *http.Request) {
+	id, err := strconv.Atoi(r.PathValue("id"))
+	if err != nil {
+		http.Error(w, "Not Found", 404)
+		return
+	}
+	req, err := h.requests.GetByID(id)
+	if err != nil {
+		http.Error(w, "Not Found", 404)
+		return
+	}
+	user := middleware.GetUser(r)
+	if !canEdit(user, req) {
+		http.Error(w, "Forbidden", http.StatusForbidden)
+		return
+	}
+	h.renderPartial(w, r, "detail_edit_"+r.PathValue("section"), PageData{Request: req})
+}
+
+func (h *Handler) PatchRequest(w http.ResponseWriter, r *http.Request) {
+	id, err := strconv.Atoi(r.PathValue("id"))
+	if err != nil {
+		http.Error(w, "Not Found", 404)
+		return
+	}
+	existing, err := h.requests.GetByID(id)
 	if err == sql.ErrNoRows {
 		http.Error(w, "Not Found", 404)
 		return
@@ -498,14 +567,57 @@ func (h *Handler) EditRequestForm(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Internal Server Error", 500)
 		return
 	}
-
 	user := middleware.GetUser(r)
-	if !canEdit(user, req) {
+	if !canEdit(user, existing) {
 		http.Error(w, "Forbidden", http.StatusForbidden)
 		return
 	}
-
-	h.renderPartial(w, r, "request_form", PageData{Title: "Edit Request", Request: req})
+	if err := r.ParseForm(); err != nil {
+		http.Error(w, "Bad Request", 400)
+		return
+	}
+	section := r.FormValue("_section")
+	switch section {
+	case "title":
+		if t := strings.TrimSpace(r.FormValue("title")); t != "" {
+			existing.Title = t
+		}
+	case "description":
+		existing.Description = strings.TrimSpace(r.FormValue("description"))
+	case "tags":
+		existing.Tags = strings.TrimSpace(r.FormValue("tags"))
+	case "notes":
+		existing.Notes = strings.TrimSpace(r.FormValue("notes"))
+	case "details":
+		existing.Department = strings.TrimSpace(r.FormValue("department"))
+		existing.UseCase = r.FormValue("use_case")
+		existing.DatasetType = r.FormValue("dataset_type")
+		existing.Format = strings.TrimSpace(r.FormValue("format"))
+		existing.Statistics = strings.TrimSpace(r.FormValue("statistics"))
+		existing.EstimatedSize = strings.TrimSpace(r.FormValue("estimated_size"))
+		existing.TargetCampaign = strings.TrimSpace(r.FormValue("target_campaign"))
+		existing.Key4hepStack = strings.TrimSpace(r.FormValue("key4hep_stack"))
+		existing.DueDate = r.FormValue("due_date")
+		if p := models.Priority(r.FormValue("priority")); p != "" {
+			existing.Priority = p
+		}
+	default:
+		http.Error(w, "unknown section", 400)
+		return
+	}
+	if err := h.requests.Update(existing); err != nil {
+		slog.Error("patch request", "error", err)
+		http.Error(w, "Internal Server Error", 500)
+		return
+	}
+	userID := 0
+	if user != nil {
+		userID = user.ID
+	}
+	if section == "description" || section == "notes" {
+		h.relations.CreateMentions(id, userID, existing.Description, existing.Notes)
+	}
+	h.renderPartial(w, r, "detail_section_"+section, PageData{Request: existing})
 }
 
 func (h *Handler) UpdateRequest(w http.ResponseWriter, r *http.Request) {
@@ -599,9 +711,18 @@ func (h *Handler) UpdateStatus(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, "Forbidden", http.StatusForbidden)
 			return
 		}
-		if status != models.StatusDraft && status != models.StatusCancelled {
+		ownerAllowed := status == models.StatusDraft ||
+			status == models.StatusCancelled ||
+			(status == models.StatusPending && existing.Status == models.StatusDraft)
+		if !ownerAllowed {
 			http.Error(w, "Forbidden", http.StatusForbidden)
 			return
+		}
+		if status == models.StatusPending && existing.Status == models.StatusDraft {
+			if existing.Description == "" || existing.Department == "" || existing.UseCase == "" || existing.DatasetType == "" || existing.Format == "" || existing.Statistics == "" {
+				http.Error(w, "description, group/team, use case, processing stage, format, and event count are required before submitting", 400)
+				return
+			}
 		}
 	}
 
@@ -637,11 +758,13 @@ func (h *Handler) UpdateStatus(w http.ResponseWriter, r *http.Request) {
 	}
 	updates, _ := h.updates.GetByRequestID(id)
 	managers, _ := h.users.GetManagers()
+	relations, _ := h.relations.GetByRequestID(id)
 	h.renderPartial(w, r, "request_detail", PageData{
-		Request:  req,
-		Updates:  updates,
-		Managers: managers,
-		IsPage:   htmxTarget != "modal-container",
+		Request:   req,
+		Updates:   updates,
+		Managers:  managers,
+		Relations: relations,
+		IsPage:    htmxTarget != "modal-container",
 	})
 }
 
@@ -649,6 +772,21 @@ func (h *Handler) DeleteRequest(w http.ResponseWriter, r *http.Request) {
 	id, err := strconv.Atoi(r.PathValue("id"))
 	if err != nil {
 		http.Error(w, "Not Found", 404)
+		return
+	}
+	req, err := h.requests.GetByID(id)
+	if err == sql.ErrNoRows {
+		http.Error(w, "Not Found", 404)
+		return
+	}
+	if err != nil {
+		http.Error(w, "Internal Server Error", 500)
+		return
+	}
+	user := middleware.GetUser(r)
+	ownerCanDelete := user != nil && req.CreatedBy == user.ID && req.Status == models.StatusDraft
+	if !user.IsManager() && !ownerCanDelete {
+		http.Error(w, "Forbidden", http.StatusForbidden)
 		return
 	}
 	if err := h.requests.Delete(id); err != nil {
@@ -748,7 +886,8 @@ func (h *Handler) ApprovalDecision(w http.ResponseWriter, r *http.Request) {
 	req, _ = h.requests.GetByID(id)
 	updates, _ := h.updates.GetByRequestID(id)
 	managers, _ := h.users.GetManagers()
-	h.renderPartial(w, r, "request_detail", PageData{Request: req, Updates: updates, Managers: managers})
+	relations, _ := h.relations.GetByRequestID(id)
+	h.renderPartial(w, r, "request_detail", PageData{Request: req, Updates: updates, Managers: managers, Relations: relations})
 }
 
 func (h *Handler) GetStats(w http.ResponseWriter, r *http.Request) {
